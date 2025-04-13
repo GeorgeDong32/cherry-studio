@@ -408,6 +408,10 @@
       "edit_remark": "修改備註",
       "edit_remark_placeholder": "請輸入備註內容",
       "empty": "暫無知識庫",
+      "error": {
+        "processing_result_null": "處理結果為空，請查看日誌確定具體錯誤資訊",
+        "unknown_error": "發生未知錯誤，請查看日誌確定具體錯誤資訊"
+      },
       "file_hint": "支援 {{file_types}} 格式",
       "index_all": "索引全部",
       "index_cancelled": "索引已取消",
@@ -421,7 +425,8 @@
       "not_support": "知識庫資料庫引擎已更新，該知識庫將不再支援，請重新建立知識庫",
       "notes": "筆記",
       "notes_placeholder": "輸入此知識庫的附加資訊或上下文...",
-      "rename": "重新命名",
+      "retry_item": "重試條目",
+      "rename": "重命名",
       "search": "搜尋知識庫",
       "search_placeholder": "輸入查詢內容",
       "settings": "知識庫設定",
@@ -443,6 +448,7 @@
       "topN__too_large_or_small": "返回結果數量不能大於100或小於1",
       "topN_placeholder": "未設定",
       "topN_tooltip": "返回的匹配結果數量，數值越大，匹配結果越多，但消耗的 Token 也越多",
+      "update_item": "更新條目",
       "url_added": "網址已新增",
       "url_placeholder": "請輸入網址，多個網址用換行符號分隔",
       "urls": "網址"

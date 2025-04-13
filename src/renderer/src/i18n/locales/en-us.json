@@ -408,6 +408,10 @@
       "edit_remark": "Edit Remark",
       "edit_remark_placeholder": "Please enter remark content",
       "empty": "No knowledge base found",
+      "error": {
+        "processing_result_null": "Processing result is null",
+        "unknown_error": "Unknown error occurred"
+      },
       "file_hint": "Support {{file_types}}",
       "index_all": "Index All",
       "index_cancelled": "Indexing cancelled",
@@ -421,6 +425,7 @@
       "not_support": "Knowledge base database engine updated, the knowledge base will no longer be supported, please create a new knowledge base",
       "notes": "Notes",
       "notes_placeholder": "Enter additional information or context for this knowledge base...",
+      "retry_item": "Retry Item",
       "rename": "Rename",
       "search": "Search knowledge base",
       "search_placeholder": "Enter text to search",
@@ -443,6 +448,7 @@
       "topN__too_large_or_small": "The number of results returned cannot be greater than 100 or less than 1.",
       "topN_placeholder": "Not set",
       "topN_tooltip": "The number of matching results returned; the larger the value, the more matching results, but also the more tokens consumed.",
+      "update_item": "Update Item",
       "url_added": "URL added",
       "url_placeholder": "Enter URL, multiple URLs separated by Enter",
       "urls": "URLs"

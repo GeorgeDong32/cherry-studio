@@ -408,6 +408,10 @@
       "edit_remark": "備考を編集",
       "edit_remark_placeholder": "備考内容を入力してください",
       "empty": "ナレッジベースが見つかりません",
+      "error": {
+        "processing_result_null": "処理結果が空です。ログを確認して具体的なエラー情報を確認してください",
+        "unknown_error": "未知のエラーが発生しました。ログを確認して具体的なエラー情報を確認してください"
+      },
       "file_hint": "{{file_types}} 形式をサポート",
       "index_all": "すべてをインデックス",
       "index_cancelled": "インデックスがキャンセルされました",
@@ -421,6 +425,7 @@
       "not_support": "ナレッジベースデータベースエンジンが更新されました。このナレッジベースはもうサポートされていません。新しいナレッジベースを作成してください",
       "notes": "ノート",
       "notes_placeholder": "このナレッジベースの追加情報やコンテキストを入力...",
+      "retry_item": "項目を再試行",
       "rename": "名前を変更",
       "search": "ナレッジベースを検索",
       "search_placeholder": "検索するテキストを入力",
@@ -443,6 +448,7 @@
       "topN__too_large_or_small": "結果の数は100より大きくてはならず、1より小さくてはなりません。",
       "topN_placeholder": "未設定",
       "topN_tooltip": "返されるマッチ結果の数は、数値が大きいほどマッチ結果が多くなりますが、消費されるトークンも増えます。",
+      "update_item": "項目を更新",
       "url_added": "URLが追加されました",
       "url_placeholder": "URLを入力, 複数のURLはEnterで区切る",
       "urls": "URL"

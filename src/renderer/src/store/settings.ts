@@ -21,6 +21,8 @@ export const DEFAULT_SIDEBAR_ICONS: SidebarIcon[] = [
 
 export interface NutstoreSyncRuntime extends WebDAVSyncState {}
 
+export type AssistantIconType = 'model' | 'emoji' | 'none'
+
 export interface SettingsState {
   showAssistants: boolean
   showTopics: boolean
@@ -42,7 +44,7 @@ export interface SettingsState {
   fontSize: number
   topicPosition: 'left' | 'right'
   showTopicTime: boolean
-  showAssistantIcon: boolean
+  assistantIconType: AssistantIconType
   pasteLongTextAsFile: boolean
   pasteLongTextThreshold: number
   clickAssistantToShowTopic: boolean
@@ -110,6 +112,7 @@ export interface SettingsState {
   showOpenedMinappsInSidebar: boolean
   // 隐私设置
   enableDataCollection: boolean
+  enableQuickPanelTriggers: boolean
   exportMenuOptions: {
     image: boolean
     markdown: boolean
@@ -125,7 +128,7 @@ export interface SettingsState {
 
 export type MultiModelMessageStyle = 'horizontal' | 'vertical' | 'fold' | 'grid'
 
-const initialState: SettingsState = {
+export const initialState: SettingsState = {
   showAssistants: true,
   showTopics: true,
   sendMessageShortcut: 'Enter',
@@ -146,7 +149,7 @@ const initialState: SettingsState = {
   fontSize: 14,
   topicPosition: 'left',
   showTopicTime: false,
-  showAssistantIcon: false,
+  assistantIconType: 'emoji',
   pasteLongTextAsFile: false,
   pasteLongTextThreshold: 1500,
   clickAssistantToShowTopic: true,
@@ -208,6 +211,7 @@ const initialState: SettingsState = {
   maxKeepAliveMinapps: 3,
   showOpenedMinappsInSidebar: true,
   enableDataCollection: false,
+  enableQuickPanelTriggers: false,
   exportMenuOptions: {
     image: true,
     markdown: true,
@@ -292,8 +296,8 @@ const settingsSlice = createSlice({
     setShowTopicTime: (state, action: PayloadAction<boolean>) => {
       state.showTopicTime = action.payload
     },
-    setShowAssistantIcon: (state, action: PayloadAction<boolean>) => {
-      state.showAssistantIcon = action.payload
+    setAssistantIconType: (state, action: PayloadAction<AssistantIconType>) => {
+      state.assistantIconType = action.payload
     },
     setPasteLongTextAsFile: (state, action: PayloadAction<boolean>) => {
       state.pasteLongTextAsFile = action.payload
@@ -476,6 +480,9 @@ const settingsSlice = createSlice({
     },
     setExportMenuOptions: (state, action: PayloadAction<typeof initialState.exportMenuOptions>) => {
       state.exportMenuOptions = action.payload
+    },
+    setEnableQuickPanelTriggers: (state, action: PayloadAction<boolean>) => {
+      state.enableQuickPanelTriggers = action.payload
     }
   }
 })
@@ -503,7 +510,7 @@ export const {
   setWindowStyle,
   setTopicPosition,
   setShowTopicTime,
-  setShowAssistantIcon,
+  setAssistantIconType,
   setPasteLongTextAsFile,
   setAutoCheckUpdate,
   setRenderInputMessageAsMarkdown,
@@ -562,6 +569,7 @@ export const {
   setMaxKeepAliveMinapps,
   setShowOpenedMinappsInSidebar,
   setEnableDataCollection,
+  setEnableQuickPanelTriggers,
   setExportMenuOptions
 } = settingsSlice.actions
 

@@ -85,9 +85,9 @@ afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    引入全新的 QuickPanel 功能，统一了应用内的输入和搜索操作
-    新增内存 MCP (in-memory MCP) 服务支持及配置管理
-    新增对七牛云 AI (Qiniu AI) 提供商的支持
-    添加了导出菜单选项设置和思维链（Chain-of-Thought）导出功能
-    消息锚点线支持底部锚点
-    为 AppImage 添加了多分辨率图标
+    增加对 grok-3 和 Grok-3-mini 的支持
+    助手支持使用拼音排序
+    网络搜索增加 Baidu, Google, Bing 支持（免费使用）
+    网络搜索增加 uBlacklist 订阅
+    快速面板 (QuickPanel) 进行性能优化
+    解决 mcp 依赖工具下载速度问题

@@ -158,21 +158,35 @@ export const useKnowledge = (baseId: string) => {
       return
     }
 
-    if (base && item.uniqueId && item.uniqueIds) {
+    if (!base) {
+      return
+    }
+
+    // 只有当项目有唯一ID时，才需要从知识库中移除
+    if (item.uniqueId && item.uniqueIds) {
       await window.api.knowledgeBase.remove({
         uniqueId: item.uniqueId,
         uniqueIds: item.uniqueIds,
         base: getKnowledgeBaseParams(base)
       })
-      updateItem({
-        ...item,
-        processingStatus: 'pending',
-        processingProgress: 0,
-        processingError: '',
-        uniqueId: undefined
-      })
-      setTimeout(() => KnowledgeQueue.checkAllBases(), 0)
     }
+
+    // 创建一个新的项目，保留原始内容和ID，但重置处理状态
+    const refreshedItem: KnowledgeItem = {
+      ...item,
+      processingStatus: 'pending' as ProcessingStatus,
+      processingProgress: 0,
+      processingError: '',
+      uniqueId: undefined,
+      uniqueIds: undefined,
+      retryCount: 0
+    }
+
+    // 更新项目状态
+    updateItem(refreshedItem)
+
+    // 触发处理队列检查
+    setTimeout(() => KnowledgeQueue.checkAllBases(), 0)
   }
 
   // 更新处理状态

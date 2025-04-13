@@ -21,15 +21,23 @@ const StatusIcon: FC<StatusIconProps> = ({ sourceId, base, getProcessingStatus, 
   const errorText = item?.processingError
 
   if (!status) {
+    if (errorText) {
+      return (
+        <Tooltip title={errorText || t('knowledge.status_failed')} placement="top">
+          <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+        </Tooltip>
+      )
+    }
+
     if (item?.uniqueId) {
       return (
-        <Tooltip title={t('knowledge.status_completed')} placement="left">
+        <Tooltip title={t('knowledge.status_completed')} placement="top">
           <CheckCircleOutlined style={{ color: '#52c41a' }} />
         </Tooltip>
       )
     }
     return (
-      <Tooltip title={t('knowledge.status_new')} placement="left">
+      <Tooltip title={t('knowledge.status_new')} placement="top">
         <StatusDot $status="new" />
       </Tooltip>
     )
@@ -38,7 +46,7 @@ const StatusIcon: FC<StatusIconProps> = ({ sourceId, base, getProcessingStatus, 
   switch (status) {
     case 'pending':
       return (
-        <Tooltip title={t('knowledge.status_pending')} placement="left">
+        <Tooltip title={t('knowledge.status_pending')} placement="top">
           <StatusDot $status="pending" />
         </Tooltip>
       )
@@ -47,20 +55,20 @@ const StatusIcon: FC<StatusIconProps> = ({ sourceId, base, getProcessingStatus, 
       return type === 'directory' ? (
         <Progress type="circle" size={14} percent={Number(percent?.toFixed(0))} />
       ) : (
-        <Tooltip title={t('knowledge.status_processing')} placement="left">
+        <Tooltip title={t('knowledge.status_processing')} placement="top">
           <StatusDot $status="processing" />
         </Tooltip>
       )
     }
     case 'completed':
       return (
-        <Tooltip title={t('knowledge.status_completed')} placement="left">
+        <Tooltip title={t('knowledge.status_completed')} placement="top">
           <CheckCircleOutlined style={{ color: '#52c41a' }} />
         </Tooltip>
       )
     case 'failed':
       return (
-        <Tooltip title={errorText || t('knowledge.status_failed')} placement="left">
+        <Tooltip title={errorText || t('knowledge.status_failed')} placement="top">
           <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
         </Tooltip>
       )

@@ -332,7 +332,10 @@
         "title": "渲染错误"
       },
       "user_message_not_found": "无法找到原始用户消息",
-      "unknown": "未知错误"
+      "unknown": "未知错误",
+      "processing_result_null": "处理结果为空",
+      "unknown_error": "发生未知错误",
+      "no_response": "未收到服务器响应"
     },
     "export": {
       "assistant": "助手",
@@ -408,6 +411,10 @@
       "edit_remark": "修改备注",
       "edit_remark_placeholder": "请输入备注内容",
       "empty": "暂无知识库",
+      "error": {
+        "processing_result_null": "处理结果为空，请查看日志确定具体错误信息",
+        "unknown_error": "发生未知错误，请查看日志确定具体错误信息"
+      },
       "file_hint": "支持 {{file_types}} 格式",
       "index_all": "索引全部",
       "index_cancelled": "索引已取消",
@@ -421,6 +428,7 @@
       "not_support": "知识库数据库引擎已更新，该知识库将不再支持，请重新创建知识库",
       "notes": "笔记",
       "notes_placeholder": "输入此知识库的附加信息或上下文...",
+      "retry_item": "重试条目",
       "rename": "重命名",
       "search": "搜索知识库",
       "search_placeholder": "输入查询内容",
@@ -443,6 +451,7 @@
       "topN__too_large_or_small": "返回结果数量不能大于100或小于1",
       "topN_placeholder": "未设置",
       "topN_tooltip": "返回的匹配结果数量，数值越大，匹配结果越多，但消耗的 Token 也越多",
+      "update_item": "更新条目",
       "url_added": "网址已添加",
       "url_placeholder": "请输入网址, 多个网址用回车分隔",
       "urls": "网址"

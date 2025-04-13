@@ -1,7 +1,8 @@
 import db from '@renderer/databases'
+import i18n from '@renderer/i18n'
 import { getKnowledgeBaseParams } from '@renderer/services/KnowledgeService'
 import store from '@renderer/store'
-import { clearCompletedProcessing, updateBaseItemUniqueId, updateItemProcessingStatus } from '@renderer/store/knowledge'
+import { updateBaseItemUniqueId, updateItemProcessingStatus } from '@renderer/store/knowledge'
 import { KnowledgeItem } from '@renderer/types'
 import type { LoaderReturn } from '@shared/config/types'
 
@@ -104,6 +105,8 @@ class KnowledgeQueue {
         })
       )
 
+      console.log('[debug]dispatch processing:', item)
+
       const base = store.getState().knowledge.bases.find((b) => b.id === baseId)
 
       if (!base) {
@@ -155,20 +158,20 @@ class KnowledgeQueue {
           })
         )
         console.log(`[KnowledgeQueue] Updated uniqueId for item ${item.id} in base ${baseId} `)
+        console.log(`[KnowledgeQueue] Successfully processed item ${item.id}`)
       } else {
-        console.log(`[KnowledgeQueue] (Error)Processing result of item ${item.id} is null. `)
+        console.log(`[KnowledgeQueue] (Error) Processing result of item ${item.id} is null. `)
         store.dispatch(
           updateItemProcessingStatus({
             baseId,
             itemId: item.id,
             status: 'failed',
-            error: 'Processing result is null',
+            error: i18n.t('knowledge.error.processing_result_null'),
             retryCount: (item.retryCount || 0) + 1
           })
         )
       }
-
-      store.dispatch(clearCompletedProcessing({ baseId }))
+      console.log(item)
     } catch (error) {
       console.error(`[KnowledgeQueue] Error processing item ${item.id}: `, error)
       store.dispatch(
@@ -176,7 +179,7 @@ class KnowledgeQueue {
           baseId,
           itemId: item.id,
           status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : i18n.t('knowledge.error.unknown_error'),
           retryCount: (item.retryCount || 0) + 1
         })
       )

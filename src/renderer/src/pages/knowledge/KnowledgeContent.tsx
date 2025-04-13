@@ -362,8 +362,15 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                           extra: `${dayjs(file.created_at).format('MM-DD HH:mm')} · ${formatFileSize(file.size)}`,
                           actions: (
                             <FlexAlignCenter>
-                              {item.uniqueId && (
-                                <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                              {(item.uniqueId || item.processingStatus === 'failed' || item.processingError) && (
+                                <Tooltip
+                                  title={
+                                    item.processingStatus === 'failed' || item.processingError
+                                      ? t('knowledge.retry_item')
+                                      : t('knowledge.update_item')
+                                  }>
+                                  <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                                </Tooltip>
                               )}
                               <StatusIconWrapper>
                                 <StatusIcon
@@ -419,7 +426,16 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                   extra: `${dayjs(item.created_at).format('MM-DD HH:mm')}`,
                   actions: (
                     <FlexAlignCenter>
-                      {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
+                      {(item.uniqueId || item.processingStatus === 'failed' || item.processingError) && (
+                        <Tooltip
+                          title={
+                            item.processingStatus === 'failed' || item.processingError
+                              ? t('common.retry')
+                              : t('common.refresh')
+                          }>
+                          <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                        </Tooltip>
+                      )}
                       <StatusIconWrapper>
                         <StatusIcon
                           sourceId={item.id}
@@ -497,7 +513,16 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                   extra: `${dayjs(item.created_at).format('MM-DD HH:mm')}`,
                   actions: (
                     <FlexAlignCenter>
-                      {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
+                      {(item.uniqueId || item.processingStatus === 'failed' || item.processingError) && (
+                        <Tooltip
+                          title={
+                            item.processingStatus === 'failed' || item.processingError
+                              ? t('common.retry')
+                              : t('common.refresh')
+                          }>
+                          <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                        </Tooltip>
+                      )}
                       <StatusIconWrapper>
                         <StatusIcon
                           sourceId={item.id}
@@ -552,7 +577,16 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                   extra: `${dayjs(item.created_at).format('MM-DD HH:mm')}`,
                   actions: (
                     <FlexAlignCenter>
-                      {item.uniqueId && <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />}
+                      {(item.uniqueId || item.processingStatus === 'failed' || item.processingError) && (
+                        <Tooltip
+                          title={
+                            item.processingStatus === 'failed' || item.processingError
+                              ? t('common.retry')
+                              : t('common.refresh')
+                          }>
+                          <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(item)} />
+                        </Tooltip>
+                      )}
                       <StatusIconWrapper>
                         <StatusIcon
                           sourceId={item.id}
@@ -598,6 +632,16 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
                   actions: (
                     <FlexAlignCenter>
                       <Button type="text" onClick={() => handleEditNote(note)} icon={<EditOutlined />} />
+                      {(note.uniqueId || note.processingStatus === 'failed' || note.processingError) && (
+                        <Tooltip
+                          title={
+                            note.processingStatus === 'failed' || note.processingError
+                              ? t('common.retry')
+                              : t('common.refresh')
+                          }>
+                          <Button type="text" icon={<RefreshIcon />} onClick={() => refreshItem(note)} />
+                        </Tooltip>
+                      )}
                       <StatusIconWrapper>
                         <StatusIcon
                           sourceId={note.id}

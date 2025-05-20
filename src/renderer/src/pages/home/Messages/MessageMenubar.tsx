@@ -248,7 +248,8 @@ const MessageMenubar: FC<Props> = (props) => {
             key: 'joplin',
             onClick: async () => {
               const title = await getMessageTitle(message)
-              exportMarkdownToJoplin(title, message)
+              const markdown = messageToMarkdown(message)
+              exportMarkdownToJoplin(title, markdown)
             }
           },
           exportMenuOptions.siyuan && {

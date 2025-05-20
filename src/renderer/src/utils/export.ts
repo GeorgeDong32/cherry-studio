@@ -558,24 +558,12 @@ function transformObsidianFileName(fileName: string): string {
 
   return sanitized
 }
-export const exportMarkdownToJoplin = async (title: string, contentOrMessages: string | Message | Message[]) => {
-  const { joplinUrl, joplinToken, joplinExportReasoning } = store.getState().settings
+export const exportMarkdownToJoplin = async (title: string, content: string) => {
+  const { joplinUrl, joplinToken } = store.getState().settings
 
   if (!joplinUrl || !joplinToken) {
     window.message.error(i18n.t('message.error.joplin.no_config'))
     return
-  }
-
-  let content: string
-  if (typeof contentOrMessages === 'string') {
-    content = contentOrMessages
-  } else if (Array.isArray(contentOrMessages)) {
-    content = messagesToMarkdown(contentOrMessages, joplinExportReasoning)
-  } else {
-    // 单条Message
-    content = joplinExportReasoning
-      ? messageToMarkdownWithReasoning(contentOrMessages)
-      : messageToMarkdown(contentOrMessages)
   }
 
   try {

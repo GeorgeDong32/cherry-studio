@@ -129,7 +129,6 @@ export interface SettingsState {
   yuqueRepoId: string | null
   joplinToken: string | null
   joplinUrl: string | null
-  joplinExportReasoning: boolean
   defaultObsidianVault: string | null
   defaultAgent: string | null
   // 思源笔记配置
@@ -261,7 +260,6 @@ export const initialState: SettingsState = {
   yuqueRepoId: '',
   joplinToken: '',
   joplinUrl: '',
-  joplinExportReasoning: false,
   defaultObsidianVault: null,
   defaultAgent: null,
   siyuanApiUrl: null,
@@ -575,9 +573,6 @@ const settingsSlice = createSlice({
     setJoplinUrl: (state, action: PayloadAction<string>) => {
       state.joplinUrl = action.payload
     },
-    setJoplinExportReasoning: (state, action: PayloadAction<boolean>) => {
-      state.joplinExportReasoning = action.payload
-    },
     setMessageNavigation: (state, action: PayloadAction<'none' | 'buttons' | 'anchor'>) => {
       state.messageNavigation = action.payload
     },
@@ -628,9 +623,6 @@ const settingsSlice = createSlice({
     },
     setOpenAIServiceTier: (state, action: PayloadAction<OpenAIServiceTier>) => {
       state.openAI.serviceTier = action.payload
-    },
-    setShowModelNameInMarkdown: (state, action: PayloadAction<boolean>) => {
-      state.showModelNameInMarkdown = action.payload
     }
   }
 })
@@ -713,7 +705,6 @@ export const {
   setYuqueUrl,
   setJoplinToken,
   setJoplinUrl,
-  setJoplinExportReasoning,
   setMessageNavigation,
   setDefaultObsidianVault,
   setDefaultAgent,

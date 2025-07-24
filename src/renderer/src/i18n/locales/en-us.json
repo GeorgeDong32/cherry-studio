@@ -2073,6 +2073,8 @@
           "help": "Display the model provider (e.g., OpenAI, Gemini) when exporting to Markdown",
           "title": "Show Model Provider"
         },
+        "markdown_export.standardize_citations.help": "Convert citation markers to standard Markdown footnote format [^1] and format citation lists",
+        "markdown_export.standardize_citations.title": "Standardize Citation Format",
         "title": "Markdown Export"
       },
       "message_title": {

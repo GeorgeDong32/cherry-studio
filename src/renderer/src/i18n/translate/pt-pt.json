@@ -2054,6 +2054,8 @@
         "syncStatus": "Status do backup",
         "title": "Backup local"
       },
+      "markdown_export.exclude_citations.help": "Quando ativado, o conteúdo das citações será excluído ao exportar para Markdown.",
+      "markdown_export.exclude_citations.title": "Excluir conteúdo de citações",
       "markdown_export": {
         "force_dollar_math": {
           "help": "Ao ativar, a exportação para Markdown forçará o uso de $$ para marcar fórmulas LaTeX. Nota: isso também afetará todas as formas de exportação via Markdown, como Notion, Yuque, etc.",
@@ -2071,6 +2073,8 @@
           "help": "Exibe o fornecedor do modelo ao exportar para Markdown, como OpenAI, Gemini, etc.",
           "title": "Exibir fornecedor do modelo"
         },
+        "markdown_export.standardize_citations.help": "Converter as citações em formato Markdown padrão [^1] e formatar a lista de citações",
+        "markdown_export.standardize_citations.title": "Formatar citações",
         "title": "Exportação Markdown"
       },
       "message_title": {
@@ -2877,6 +2881,7 @@
       "manage": {
         "add_listed": {
           "confirm": "Tem a certeza de que deseja adicionar todos os modelos à lista?",
+          "models.manage.add_listed.confirm": "Deseja adicionar todos os modelos à lista?",
           "label": "Adicionar modelo da lista"
         },
         "add_whole_group": "Adicionar todo o grupo",
@@ -2994,6 +2999,7 @@
         "label": "Autenticação HTTP",
         "password": {
           "label": "palavra-passe",
+          "basic_auth.password.tip": "",
           "tip": "Introduza a palavra-passe"
         },
         "tip": "Aplica-se a instâncias implantadas por meio de servidor (consulte a documentação). Atualmente, apenas o esquema Basic é suportado (RFC7617).",
@@ -3076,6 +3082,7 @@
       "search_placeholder": "Procurar ID ou nome do modelo",
       "title": "Serviços de Modelos",
       "vertex_ai": {
+        "api_host_help": "Endereço API do serviço Vertex AI, geralmente usado para proxy inverso",
         "documentation": "Consulte a documentação oficial para obter mais detalhes de configuração:",
         "learn_more": "Saiba mais",
         "location": "Região",

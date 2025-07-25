@@ -2054,6 +2054,8 @@
         "syncStatus": "Estado de la copia de seguridad",
         "title": "Copia de seguridad local"
       },
+      "markdown_export.exclude_citations.help": "Al activarse, se excluirá el contenido de las citas al exportar a Markdown.",
+      "markdown_export.exclude_citations.title": "Excluir contenido de citas",
       "markdown_export": {
         "force_dollar_math": {
           "help": "Al activarlo, al exportar a Markdown se usarán $$ para marcar las fórmulas LaTeX. Nota: Esto también afectará a todas las formas de exportación a través de Markdown, como Notion, Yuque, etc.",
@@ -2071,6 +2073,8 @@
           "help": "Mostrar el proveedor del modelo al exportar a Markdown, por ejemplo, OpenAI, Gemini, etc.",
           "title": "Mostrar proveedor del modelo"
         },
+        "markdown_export.standardize_citations.help": "Convertir las citas en formato Markdown estándar [^1] y formatear la lista de citas",
+        "markdown_export.standardize_citations.title": "Formatear citas",
         "title": "Exportar Markdown"
       },
       "message_title": {
@@ -2877,6 +2881,7 @@
       "manage": {
         "add_listed": {
           "confirm": "¿Está seguro de que desea agregar todos los modelos a la lista?",
+          "models.manage.add_listed.confirm": "¿Desea agregar todos los modelos a la lista?",
           "label": "Agregar modelo en la lista"
         },
         "add_whole_group": "Agregar todo el grupo",
@@ -2994,6 +2999,7 @@
         "label": "Autenticación HTTP",
         "password": {
           "label": "contraseña",
+          "basic_auth.password.tip": "",
           "tip": "Introduzca la contraseña"
         },
         "tip": "Aplicable para instancias desplegadas a través del servidor (ver documento). Actualmente solo se admite el esquema Basic (RFC7617).",
@@ -3076,6 +3082,7 @@
       "search_placeholder": "Buscar ID o nombre del modelo",
       "title": "Servicio de modelos",
       "vertex_ai": {
+        "api_host_help": "Dirección API del servicio Vertex AI, generalmente se utiliza para proxy inverso",
         "documentation": "Consulte la documentación oficial para obtener más detalles de configuración:",
         "learn_more": "Más información",
         "location": "Región",

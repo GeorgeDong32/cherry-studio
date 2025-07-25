@@ -2054,6 +2054,8 @@
         "syncStatus": "État de la sauvegarde",
         "title": "Sauvegarde locale"
       },
+      "markdown_export.exclude_citations.help": "Lorsque cette option est activée, le contenu des citations sera exclu lors de l'exportation en Markdown.",
+      "markdown_export.exclude_citations.title": "Exclure le contenu des citations",
       "markdown_export": {
         "force_dollar_math": {
           "help": "Lorsque cette option est activée, l'exportation en Markdown utilisera $$ pour marquer les formules LaTeX. Note : Cette option affecte également toutes les méthodes d'exportation en Markdown, comme Notion, YuQue, etc.",
@@ -2071,6 +2073,8 @@
           "help": "Afficher le fournisseur du modèle lors de l'exportation en Markdown, par exemple OpenAI, Gemini, etc.",
           "title": "Afficher le fournisseur du modèle"
         },
+        "markdown_export.standardize_citations.help": "Convertir les citations en format Markdown standard [^1] et formater la liste des citations",
+        "markdown_export.standardize_citations.title": "Formater les citations",
         "title": "Exporter en Markdown"
       },
       "message_title": {
@@ -2877,6 +2881,7 @@
       "manage": {
         "add_listed": {
           "confirm": "Êtes-vous sûr de vouloir ajouter tous les modèles à la liste ?",
+          "models.manage.add_listed.confirm": "Voulez-vous ajouter tous les modèles à la liste ?",
           "label": "Ajouter le modèle dans la liste"
         },
         "add_whole_group": "Ajouter tout le groupe",
@@ -2994,6 +2999,7 @@
         "label": "Authentification HTTP",
         "password": {
           "label": "mot de passe",
+          "basic_auth.password.tip": "",
           "tip": "Entrer le mot de passe"
         },
         "tip": "S'applique aux instances déployées via le serveur (voir la documentation). Seule la méthode Basic est actuellement prise en charge (RFC7617).",
@@ -3076,6 +3082,7 @@
       "search_placeholder": "Rechercher un ID ou un nom de modèle",
       "title": "Services de modèles",
       "vertex_ai": {
+        "api_host_help": "Adresse API du service Vertex AI, généralement utilisée pour le proxy inverse",
         "documentation": "Consultez la documentation officielle pour plus de détails sur la configuration :",
         "learn_more": "En savoir plus",
         "location": "Région",

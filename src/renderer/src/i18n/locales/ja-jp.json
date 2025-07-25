@@ -2073,6 +2073,8 @@
           "help": "Markdownエクスポート時にモデルプロバイダー（例：OpenAI、Geminiなど）を表示します。",
           "title": "モデルプロバイダーを表示"
         },
+        "markdown_export.standardize_citations.help": "引用マークを標準の Markdown 脚注形式 [^1] に変換し、引用リストをフォーマットします",
+        "markdown_export.standardize_citations.title": "引用を標準化",
         "title": "Markdownエクスポート"
       },
       "message_title": {

@@ -2851,6 +2851,10 @@
       "disabled": "隱藏的小程式",
       "display_title": "小程式顯示設置",
       "empty": "把要隱藏的小程式從左側拖拽到這裡",
+      "enable_preload": {
+        "description": "透過加載偽裝腳本實現 Cloudflare 驗證的正常進行，可能存在風險，請謹慎啟用",
+        "title": "加載偽裝腳本"
+      },
       "open_link_external": {
         "title": "在瀏覽器中打開新視窗連結"
       },
@@ -2858,11 +2862,7 @@
       "sidebar_description": "設置側邊欄是否顯示活躍的小程式",
       "sidebar_title": "側邊欄活躍小程式顯示設置",
       "title": "小程式設置",
-      "visible": "顯示的小程式",
-      "enable_preload": {
-        "title": "加載偽裝腳本",
-        "description": "透過加載偽裝腳本實現 Cloudflare 驗證的正常進行，可能存在風險，請謹慎啟用"
-      }
+      "visible": "顯示的小程式"
     },
     "model": "預設模型",
     "models": {

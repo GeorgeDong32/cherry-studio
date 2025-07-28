@@ -632,6 +632,7 @@
     "enabled": "已啟用",
     "error": "錯誤",
     "expand": "展開",
+    "experimental": "實驗性功能",
     "footnote": "引用內容",
     "footnotes": "引用",
     "fullscreen": "已進入全螢幕模式，按 F11 結束",
@@ -2857,7 +2858,11 @@
       "sidebar_description": "設置側邊欄是否顯示活躍的小程式",
       "sidebar_title": "側邊欄活躍小程式顯示設置",
       "title": "小程式設置",
-      "visible": "顯示的小程式"
+      "visible": "顯示的小程式",
+      "enable_preload": {
+        "title": "加載偽裝腳本",
+        "description": "透過加載偽裝腳本實現 Cloudflare 驗證的正常進行，可能存在風險，請謹慎啟用"
+      }
     },
     "model": "預設模型",
     "models": {

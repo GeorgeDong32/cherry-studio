@@ -632,6 +632,7 @@
     "enabled": "有効",
     "error": "エラー",
     "expand": "展開",
+    "experimental": "実験的機能",
     "footnote": "引用内容",
     "footnotes": "脚注",
     "fullscreen": "全画面モードに入りました。F11キーで終了します",
@@ -2857,7 +2858,11 @@
       "sidebar_description": "サイドバーにアクティブなミニアプリを表示するかどうかを設定します",
       "sidebar_title": "サイドバーのアクティブなミニアプリ表示",
       "title": "ミニアプリ設定",
-      "visible": "表示するミニアプリ"
+      "visible": "表示するミニアプリ",
+      "enable_preload": {
+        "title": "偽装スクリプトの読み込み",
+        "description": "偽装スクリプトを読み込むことで Cloudflare 検証を正常に実行可能ですが、リスクが生じる可能性があります。慎重に有効化してください"
+      }
     },
     "model": "デフォルトモデル",
     "models": {

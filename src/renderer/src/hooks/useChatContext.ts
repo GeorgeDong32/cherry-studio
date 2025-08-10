@@ -6,6 +6,7 @@ import { messageBlocksSelectors } from '@renderer/store/messageBlock'
 import { selectMessagesForTopic } from '@renderer/store/newMessage'
 import { setActiveTopic, setSelectedMessageIds, toggleMultiSelectMode } from '@renderer/store/runtime'
 import { Topic } from '@renderer/types'
+import { captureScrollableDiv } from '@renderer/utils/image'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector, useStore } from 'react-redux'
@@ -172,11 +173,119 @@ export const useChatContext = (activeTopic: Topic) => {
           }
           break
         }
+        case 'export_image': {
+          // 获取选中的消息元素并导出为图片
+          const selectedMessages = messages.filter((msg) => messageIds.includes(msg.id))
+          if (selectedMessages.length > 0) {
+            // 在try块外声明container变量，以便在finally块中可以访问
+            let container: HTMLDivElement | null = null
+            const clonedMessages: HTMLElement[] = []
+
+            try {
+              // 创建临时容器来包含选中的消息
+              container = document.createElement('div')
+              container.style.display = 'flex'
+              container.style.flexDirection = 'column'
+              container.style.gap = '16px'
+              container.style.padding = '20px'
+              container.style.background = 'var(--color-background)'
+              container.style.minWidth = '800px'
+              container.style.width = '800px'
+              container.style.maxWidth = '800px'
+
+              // 获取实际的消息DOM元素并克隆它们
+              for (const msg of selectedMessages) {
+                const originalElement = messageRefs.get(msg.id)
+                if (originalElement) {
+                  // 克隆原始元素
+                  const clonedElement = originalElement.cloneNode(true) as HTMLElement
+
+                  // 移除不需要的元素（如菜单栏等）
+                  const menubars = clonedElement.querySelectorAll('.menubar')
+                  menubars.forEach((bar) => bar.remove())
+
+                  // 移除多选复选框
+                  const checkboxes = clonedElement.querySelectorAll('input[type="checkbox"]')
+                  checkboxes.forEach((checkbox) => checkbox.remove())
+
+                  // 重置一些样式以确保正确显示
+                  clonedElement.style.position = 'static'
+                  clonedElement.style.transform = 'none'
+                  clonedElement.style.willChange = 'auto'
+
+                  // 添加到容器
+                  container.appendChild(clonedElement)
+                  clonedMessages.push(clonedElement)
+                }
+              }
+
+              // 如果没有找到任何DOM元素，则回退到原始方法
+              if (clonedMessages.length === 0) {
+                // 添加每个选中的消息到容器中
+                for (const msg of selectedMessages) {
+                  // 直接创建消息元素而不是尝试获取DOM元素
+                  const messageElement = document.createElement('div')
+                  messageElement.style.padding = '12px'
+                  messageElement.style.borderRadius = '8px'
+                  messageElement.style.background = 'var(--color-background-soft)'
+                  messageElement.style.marginBottom = '10px'
+                  messageElement.style.width = '100%'
+                  messageElement.style.maxWidth = '100%'
+
+                  // 获取消息内容
+                  const content = msg.blocks
+                    .map((blockId) => {
+                      const block = messageBlocks[blockId]
+                      return block && 'content' in block ? block.content : ''
+                    })
+                    .filter(Boolean)
+                    .join('\n')
+                    .trim()
+
+                  messageElement.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">
+                      ${msg.role === 'user' ? 'User' : 'Assistant'}:
+                    </div>
+                    <div>${content}</div>
+                  `
+                  container.appendChild(messageElement)
+                }
+              }
+
+              // 添加到文档中但隐藏
+              container.style.position = 'absolute'
+              container.style.left = '-9999px'
+              container.style.top = '-9999px'
+              container.style.visibility = 'hidden'
+              document.body.appendChild(container)
+
+              // 捕获为图片
+              const canvas = await captureScrollableDiv({ current: container })
+              if (canvas) {
+                const imageData = canvas.toDataURL('image/png')
+                const fileName = `chat_export_${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}.png`
+                await window.api.file.saveImage(fileName, imageData)
+                window.message.success({ content: t('message.export.image.success'), key: 'export-image-messages' })
+              }
+            } catch (error) {
+              logger.error('Failed to export messages as image:', error as Error)
+              window.message.error({ content: t('message.export.image.failed'), key: 'export-image-messages' })
+            } finally {
+              // 查找并移除所有临时添加的元素
+              if (container && container.parentNode) {
+                container.parentNode.removeChild(container)
+              }
+            }
+
+            handleToggleMultiSelectMode(false)
+          }
+          break
+        }
         default:
           break
       }
     },
-    [t, store, activeTopic.id, deleteMessage, handleToggleMultiSelectMode]
+    [store, activeTopic.id, t, handleToggleMultiSelectMode, deleteMessage, messageRefs]
   )
 
   return {

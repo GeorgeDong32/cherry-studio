@@ -80,20 +80,20 @@ export const captureScrollableDiv = async (divRef: React.RefObject<HTMLDivElemen
       div.style.overflow = 'visible'
       div.style.position = 'static'
 
-      // calculate the size of the div
+      // Calculate the size of the div
       const totalWidth = div.scrollWidth
       const totalHeight = div.scrollHeight
 
-      // check if the size of the div is too large
+      // Check if the size of the div is too large
       const MAX_ALLOWED_DIMENSION = 32767 // the maximum allowed pixel size
       if (totalHeight > MAX_ALLOWED_DIMENSION || totalWidth > MAX_ALLOWED_DIMENSION) {
-        // restore the original styles
-        div.style.height = originalStyle.height
-        div.style.maxHeight = originalStyle.maxHeight
-        div.style.overflow = originalStyle.overflow
-        div.style.position = originalStyle.position
+        // Restore the original styles
+        div.style.height = originalStyle.height || ''
+        div.style.maxHeight = originalStyle.maxHeight || ''
+        div.style.overflow = originalStyle.overflow || ''
+        div.style.position = originalStyle.position || ''
 
-        // restore the original scroll position
+        // Restore the original scroll position
         setTimeout(() => {
           div.scrollTop = originalScrollTop
         }, 0)
@@ -102,20 +102,22 @@ export const captureScrollableDiv = async (divRef: React.RefObject<HTMLDivElemen
           content: i18n.t('message.error.dimension_too_large'),
           key: 'export-error'
         })
-        return Promise.reject()
+        return Promise.reject(new Error('Dimension too large'))
       }
 
       const canvas = await new Promise<HTMLCanvasElement>((resolve, reject) => {
         htmlToImage
           .toCanvas(div, {
-            backgroundColor: getComputedStyle(div).getPropertyValue('--color-background'),
+            backgroundColor:
+              getComputedStyle(div).getPropertyValue('--color-background') || getComputedStyle(div).backgroundColor,
             cacheBust: true,
             pixelRatio: window.devicePixelRatio,
             skipAutoScale: true,
-            canvasWidth: div.scrollWidth,
-            canvasHeight: div.scrollHeight,
+            canvasWidth: totalWidth,
+            canvasHeight: totalHeight,
             style: {
-              backgroundColor: getComputedStyle(div).backgroundColor,
+              backgroundColor:
+                getComputedStyle(div).getPropertyValue('--color-background') || getComputedStyle(div).backgroundColor,
               color: getComputedStyle(div).color
             }
           })
@@ -124,19 +126,17 @@ export const captureScrollableDiv = async (divRef: React.RefObject<HTMLDivElemen
       })
 
       // Restore original styles
-      div.style.height = originalStyle.height
-      div.style.maxHeight = originalStyle.maxHeight
-      div.style.overflow = originalStyle.overflow
-      div.style.position = originalStyle.position
-
-      const imageData = canvas
+      div.style.height = originalStyle.height || ''
+      div.style.maxHeight = originalStyle.maxHeight || ''
+      div.style.overflow = originalStyle.overflow || ''
+      div.style.position = originalStyle.position || ''
 
       // Restore original scroll position
       setTimeout(() => {
         div.scrollTop = originalScrollTop
       }, 0)
 
-      return imageData
+      return canvas
     } catch (error) {
       logger.error('Error capturing scrollable div:', error as Error)
       throw error
@@ -155,12 +155,16 @@ export const captureScrollableDiv = async (divRef: React.RefObject<HTMLDivElemen
  * @returns Promise<string | undefined> 图像数据 URL，如果失败则返回 undefined
  */
 export const captureScrollableDivAsDataURL = async (divRef: React.RefObject<HTMLDivElement | null>) => {
-  return captureScrollableDiv(divRef).then((canvas) => {
+  try {
+    const canvas = await captureScrollableDiv(divRef)
     if (canvas) {
       return canvas.toDataURL('image/png')
     }
-    return Promise.resolve(undefined)
-  })
+    return undefined
+  } catch (error) {
+    logger.error('Error capturing scrollable div as data URL:', error as Error)
+    throw error
+  }
 }
 
 /**
@@ -173,9 +177,15 @@ export const captureScrollableDivAsBlob = async (
   divRef: React.RefObject<HTMLDivElement | null>,
   func: BlobCallback
 ) => {
-  await captureScrollableDiv(divRef).then((canvas) => {
-    canvas?.toBlob(func, 'image/png')
-  })
+  try {
+    const canvas = await captureScrollableDiv(divRef)
+    if (canvas) {
+      canvas.toBlob(func, 'image/png')
+    }
+  } catch (error) {
+    logger.error('Error capturing scrollable div as blob:', error as Error)
+    throw error
+  }
 }
 
 /**

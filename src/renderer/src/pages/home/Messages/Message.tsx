@@ -163,7 +163,8 @@ const MessageItem: FC<Props> = ({
           'message-assistant': isAssistantMessage,
           'message-user': !isAssistantMessage
         })}
-        ref={messageContainerRef}>
+        ref={messageContainerRef}
+        data-message-id={message.id}>
         <MessageHeader
           message={message}
           assistant={assistant}

@@ -2,7 +2,7 @@ import { CopyIcon, DeleteIcon } from '@renderer/components/Icons'
 import { useChatContext } from '@renderer/hooks/useChatContext'
 import { Topic } from '@renderer/types'
 import { Button, Tooltip } from 'antd'
-import { Save, X } from 'lucide-react'
+import { Image, Save, X } from 'lucide-react'
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -53,6 +53,16 @@ const MultiSelectActionPopup: FC<Props> = ({ topic }) => {
               icon={<CopyIcon size={16} />}
               disabled={isActionDisabled}
               onClick={() => handleAction('copy')}
+            />
+          </Tooltip>
+          <Tooltip title={t('chat.topics.export.image')}>
+            <Button
+              shape="circle"
+              color="default"
+              variant="text"
+              icon={<Image size={16} />}
+              disabled={isActionDisabled}
+              onClick={() => handleAction('export_image')}
             />
           </Tooltip>
           <Tooltip title={t('common.delete')}>

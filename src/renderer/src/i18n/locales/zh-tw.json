@@ -1269,6 +1269,12 @@
         "no_config": "未設定語雀 Token 或知識庫 Url"
       }
     },
+    "export": {
+      "image": {
+        "failed": "圖片匯出失敗",
+        "success": "圖片匯出成功"
+      }
+    },
     "group": {
       "delete": {
         "content": "刪除分組訊息會刪除使用者提問和所有助手的回答",

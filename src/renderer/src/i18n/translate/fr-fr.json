@@ -1244,6 +1244,12 @@
         "no_config": "Aucun jeton Yuque ou URL de base de connaissances configuré"
       }
     },
+    "export": {
+      "image": {
+        "failed": "Échec de l'exportation de l'image",
+        "success": "Exportation de l'image réussie"
+      }
+    },
     "group": {
       "delete": {
         "content": "La suppression du groupe de messages supprimera les questions des utilisateurs et toutes les réponses des assistants",

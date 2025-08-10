@@ -1269,6 +1269,12 @@
         "no_config": "未配置语雀 Token 或 知识库 URL"
       }
     },
+    "export": {
+      "image": {
+        "failed": "图片导出失败",
+        "success": "图片导出成功"
+      }
+    },
     "group": {
       "delete": {
         "content": "删除分组消息会删除用户提问和所有助手的回答",

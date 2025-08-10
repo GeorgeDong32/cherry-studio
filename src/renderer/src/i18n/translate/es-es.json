@@ -1244,6 +1244,12 @@
         "no_config": "No se ha configurado el token de Yuque o la URL de la base de conocimiento"
       }
     },
+    "export": {
+      "image": {
+        "failed": "Error al exportar la imagen",
+        "success": "Exportación de imagen exitosa"
+      }
+    },
     "group": {
       "delete": {
         "content": "Eliminar el mensaje del grupo eliminará la pregunta del usuario y todas las respuestas del asistente",

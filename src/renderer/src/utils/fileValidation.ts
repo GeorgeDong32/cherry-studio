@@ -1,5 +1,5 @@
 import { loggerService } from '@logger'
-import { documentExts, imageExts, textExts } from '@shared/config/constant'
+import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/config/constant'
 
 const logger = loggerService.withContext('Utils:FileValidation')
 
@@ -7,6 +7,16 @@ const logger = loggerService.withContext('Utils:FileValidation')
  * 文件上传验证工具
  * 结合扩展名检查和内容检测，提供更准确的文件类型判断
  */
+
+/**
+ * 检查文件扩展名是否为音视频文件
+ * @param fileExtension 文件扩展名（包含点号，如 '.mp3'）
+ * @returns 是否为音视频文件
+ */
+export function isAudioVideoExtension(fileExtension: string): boolean {
+  const lowerExt = fileExtension.toLowerCase()
+  return audioExts.includes(lowerExt) || videoExts.includes(lowerExt)
+}
 
 /**
  * 获取支持的文件扩展名列表
@@ -68,7 +78,16 @@ export async function validateFileUpload(
     return { allowed: true }
   }
 
-  // 2. 如果扩展名不在支持列表中，但可能是文本文件，使用内容检测
+  // 2. 明确排除音视频文件，即使 istextorbinary 可能错误识别
+  // TODO: 若未来支持音视频文件上传，需调整此逻辑
+  if (isAudioVideoExtension(fileExtension)) {
+    return {
+      allowed: false,
+      reason: 'Audio and video files are not supported for upload'
+    }
+  }
+
+  // 3. 如果扩展名不在支持列表中，也不是音视频文件，尝试内容检测
   const isTextContent = await isTextFile(file)
 
   if (isTextContent) {
@@ -78,7 +97,7 @@ export async function validateFileUpload(
     }
   }
 
-  // 3. 既不在扩展名列表中，内容也不是文本
+  // 4. 既不在扩展名列表中，内容也不是文本
   const supportedExts = getSupportedExtensions(allowImages)
   return {
     allowed: false,

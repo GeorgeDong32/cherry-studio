@@ -172,7 +172,10 @@ const api = {
     openFileWithRelativePath: (file: FileMetadata) => ipcRenderer.invoke(IpcChannel.File_OpenWithRelativePath, file)
   },
   fs: {
-    read: (pathOrUrl: string, encoding?: BufferEncoding) => ipcRenderer.invoke(IpcChannel.Fs_Read, pathOrUrl, encoding)
+    read: (pathOrUrl: string, encoding?: BufferEncoding) => ipcRenderer.invoke(IpcChannel.Fs_Read, pathOrUrl, encoding),
+    isTextFile: (filePath: string) => ipcRenderer.invoke(IpcChannel.Fs_IsTextFile, filePath),
+    isTextContent: (fileName: string, fileBuffer: ArrayBuffer) =>
+      ipcRenderer.invoke(IpcChannel.Fs_IsTextContent, fileName, fileBuffer)
   },
   export: {
     toWord: (markdown: string, fileName: string) => ipcRenderer.invoke(IpcChannel.Export_Word, markdown, fileName)

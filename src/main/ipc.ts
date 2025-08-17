@@ -464,6 +464,8 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
 
   // fs
   ipcMain.handle(IpcChannel.Fs_Read, FileService.readFile.bind(FileService))
+  ipcMain.handle(IpcChannel.Fs_IsTextFile, FileService.isTextFile.bind(FileService))
+  ipcMain.handle(IpcChannel.Fs_IsTextContent, FileService.isTextContent.bind(FileService))
 
   // export
   ipcMain.handle(IpcChannel.Export_Word, exportService.exportToWord.bind(exportService))

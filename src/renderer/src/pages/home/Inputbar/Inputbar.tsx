@@ -36,6 +36,7 @@ import { sendMessage as _sendMessage } from '@renderer/store/thunk/messageThunk'
 import { Assistant, FileType, FileTypes, KnowledgeBase, KnowledgeItem, Model, Topic } from '@renderer/types'
 import type { MessageInputBaseParams } from '@renderer/types/newMessage'
 import { classNames, delay, formatFileSize } from '@renderer/utils'
+import { getSupportedExtensions } from '@renderer/utils/fileValidation'
 import { formatQuotedText } from '@renderer/utils/formats'
 import {
   getFilesFromDropEvent,
@@ -44,7 +45,7 @@ import {
   isSendMessageKeyPressed
 } from '@renderer/utils/input'
 import { getLanguageByLangcode } from '@renderer/utils/translate'
-import { documentExts, imageExts, textExts } from '@shared/config/constant'
+import { imageExts } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Tooltip } from 'antd'
 import TextArea, { TextAreaRef } from 'antd/es/input/TextArea'
@@ -147,11 +148,11 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
   const supportedExts = useMemo(() => {
     if (couldAddImageFile && couldAddTextFile) {
-      return [...imageExts, ...documentExts, ...textExts]
+      return getSupportedExtensions(true)
     } else if (couldAddImageFile) {
       return [...imageExts]
     } else if (couldAddTextFile) {
-      return [...documentExts, ...textExts]
+      return getSupportedExtensions(false)
     } else {
       return []
     }
@@ -592,13 +593,40 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
       if (files) {
         let supportedFiles = 0
+        const unsupportedFiles: typeof files = []
 
+        // 首先使用原有的扩展名检查
         files.forEach((file) => {
           if (supportedExts.includes(file.ext)) {
             setFiles((prevFiles) => [...prevFiles, file])
             supportedFiles++
+          } else {
+            unsupportedFiles.push(file)
           }
         })
+
+        // 对于不支持的扩展名，尝试内容检测（仅当允许文本文件时）
+        if (couldAddTextFile && unsupportedFiles.length > 0) {
+          for (const fileMetadata of unsupportedFiles) {
+            try {
+              // 获取文件路径并读取内容
+              const filePath = fileMetadata.path || fileMetadata.id + fileMetadata.ext
+              const fileContent = await window.api.file.get(filePath)
+              const file = new File([fileContent], fileMetadata.origin_name)
+
+              // 使用内容检测判断是否为文本文件
+              const { validateFileUpload } = await import('@renderer/utils/fileValidation')
+              const validation = await validateFileUpload(file, false) // 不允许图片，只检测文本
+
+              if (validation.allowed) {
+                setFiles((prevFiles) => [...prevFiles, fileMetadata])
+                supportedFiles++
+              }
+            } catch (error) {
+              logger.error('Error detecting file content:', error as Error)
+            }
+          }
+        }
 
         // 如果有文件，但都不支持
         if (files.length > 0 && supportedFiles === 0) {
@@ -609,7 +637,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
         }
       }
     },
-    [supportedExts, t, text]
+    [couldAddTextFile, supportedExts, t, text]
   )
 
   const onTranslated = (translatedText: string) => {

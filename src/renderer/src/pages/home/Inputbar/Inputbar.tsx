@@ -36,7 +36,7 @@ import { sendMessage as _sendMessage } from '@renderer/store/thunk/messageThunk'
 import { Assistant, FileType, FileTypes, KnowledgeBase, KnowledgeItem, Model, Topic } from '@renderer/types'
 import type { MessageInputBaseParams } from '@renderer/types/newMessage'
 import { classNames, delay, formatFileSize } from '@renderer/utils'
-import { getSupportedExtensions } from '@renderer/utils/fileValidation'
+import { getSupportedExtensions, validateFileMetadata } from '@renderer/utils/fileValidation'
 import { formatQuotedText } from '@renderer/utils/formats'
 import {
   getFilesFromDropEvent,
@@ -609,14 +609,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
         if (couldAddTextFile && unsupportedFiles.length > 0) {
           for (const fileMetadata of unsupportedFiles) {
             try {
-              // 获取文件路径并读取内容
-              const filePath = fileMetadata.path || fileMetadata.id + fileMetadata.ext
-              const fileContent = await window.api.file.get(filePath)
-              const file = new File([fileContent], fileMetadata.origin_name)
-
-              // 使用内容检测判断是否为文本文件
-              const { validateFileUpload } = await import('@renderer/utils/fileValidation')
-              const validation = await validateFileUpload(file, false) // 不允许图片，只检测文本
+              const validation = await validateFileMetadata(fileMetadata, false) // 不允许图片，只检测文本
 
               if (validation.allowed) {
                 setFiles((prevFiles) => [...prevFiles, fileMetadata])

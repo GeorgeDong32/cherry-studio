@@ -11,7 +11,7 @@ import { selectMessagesForTopic } from '@renderer/store/newMessage'
 import { FileMetadata, FileTypes } from '@renderer/types'
 import { Message, MessageBlock, MessageBlockStatus, MessageBlockType } from '@renderer/types/newMessage'
 import { classNames } from '@renderer/utils'
-import { getSupportedExtensions } from '@renderer/utils/fileValidation'
+import { getSupportedExtensions, validateFileMetadata } from '@renderer/utils/fileValidation'
 import { getFilesFromDropEvent, isSendMessageKeyPressed } from '@renderer/utils/input'
 import { createFileBlock, createImageBlock } from '@renderer/utils/messageUtils/create'
 import { findAllBlocks } from '@renderer/utils/messageUtils/find'
@@ -189,14 +189,7 @@ const MessageBlockEditor: FC<Props> = ({ message, topicId, onSave, onResend, onC
       if (couldAddTextFile && unsupportedFiles.length > 0) {
         for (const fileMetadata of unsupportedFiles) {
           try {
-            // 获取文件路径并读取内容
-            const filePath = fileMetadata.path || fileMetadata.id + fileMetadata.ext
-            const fileContent = await window.api.file.get(filePath)
-            const file = new File([fileContent], fileMetadata.origin_name)
-
-            // 使用内容检测判断是否为文本文件
-            const { validateFileUpload } = await import('@renderer/utils/fileValidation')
-            const validation = await validateFileUpload(file, false) // 不允许图片，只检测文本
+            const validation = await validateFileMetadata(fileMetadata, false) // 不允许图片，只检测文本
 
             if (validation.allowed) {
               setFiles((prevFiles) => [...prevFiles, fileMetadata])

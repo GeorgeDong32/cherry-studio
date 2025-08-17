@@ -71,7 +71,7 @@ export async function validateFileUpload(
   file: File,
   allowImages: boolean = true
 ): Promise<{ allowed: boolean; reason?: string }> {
-  const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase() || ''
+  const fileExtension = ('.' + (file.name.split('.').pop() || '')).toLowerCase()
 
   // 1. 首先检查扩展名是否在支持列表中
   if (isExtensionSupported(fileExtension, allowImages)) {
@@ -116,15 +116,84 @@ export async function validateMultipleFiles(
   allowImages: boolean = true
 ): Promise<Array<{ file: File; allowed: boolean; reason?: string }>> {
   const results = await Promise.all(
-    files.map(async (file) => {
-      const validation = await validateFileUpload(file, allowImages)
-      return {
-        file,
-        allowed: validation.allowed,
-        reason: validation.reason
-      }
-    })
+    files.map(async (file) => ({
+      file,
+      ...(await validateFileUpload(file, allowImages))
+    }))
   )
-
   return results
+}
+
+/**
+ * 验证文件元数据并从路径读取内容进行验证
+ * 专门用于处理从拖拽或其他方式获得的文件元数据
+ * @param fileMetadata 文件元数据
+ * @param allowImages 是否允许图片文件
+ * @returns Promise<{ allowed: boolean; reason?: string }> 验证结果
+ */
+export async function validateFileMetadata(
+  fileMetadata: { path?: string; id: string; ext: string; origin_name: string },
+  allowImages: boolean = true
+): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    let filePath = fileMetadata.path
+
+    if (!filePath) {
+      // 验证 id 是否有效
+      if (!fileMetadata.id || fileMetadata.id.trim() === '') {
+        return {
+          allowed: false,
+          reason: 'Invalid file metadata: missing file identifier'
+        }
+      }
+
+      // 确保扩展名以点开头
+      const cleanExt = fileMetadata.ext.startsWith('.') ? fileMetadata.ext : '.' + fileMetadata.ext
+
+      // 构造回退文件名：id + 扩展名
+      const fallbackName = fileMetadata.id.trim() + cleanExt
+
+      // 检查文件名长度限制（Windows MAX_PATH)
+      if (fallbackName.length > 260) {
+        return {
+          allowed: false,
+          reason: 'Invalid file path format'
+        }
+      }
+
+      // 验证构造的文件名：只允许字母、数字、中文、连字符、下划线、空格和点
+      // 并且必须有有效的文件扩展名格式
+      if (/^[\w\u4e00-\u9fa5,\s.-]+\.[A-Za-z0-9]{1,10}$/.test(fallbackName)) {
+        filePath = fallbackName
+      } else {
+        logger.error('Invalid fallback filename constructed from id and ext:', { fallbackName })
+        return {
+          allowed: false,
+          reason: 'Invalid file path format'
+        }
+      }
+    }
+
+    // 尝试读取文件内容
+    let fileContent: ArrayBuffer
+    try {
+      fileContent = await window.api.file.get(filePath)
+    } catch (fileReadError) {
+      logger.error(`Failed to read file at path: ${filePath}`, fileReadError as Error)
+      return {
+        allowed: false,
+        reason: `Failed to read file: ${(fileReadError as Error).message || 'File not accessible'}`
+      }
+    }
+
+    // 创建 File 对象并验证
+    const file = new File([fileContent], fileMetadata.origin_name)
+    return await validateFileUpload(file, allowImages)
+  } catch (error) {
+    logger.error('Unexpected error during file metadata validation:', error as Error)
+    return {
+      allowed: false,
+      reason: `Validation error: ${(error as Error).message || 'Unknown error occurred'}`
+    }
+  }
 }

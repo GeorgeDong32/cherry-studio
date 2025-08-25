@@ -307,7 +307,7 @@ class CodeToolsService {
     }
 
     // Build command to execute
-    let baseCommand = isWin ? `${executablePath}` : `${bunPath} ${executablePath}`
+    let baseCommand = isWin ? `"${executablePath}"` : `${bunPath} ${executablePath}`
     const bunInstallPath = path.join(os.homedir(), '.cherrystudio')
 
     if (isInstalled) {

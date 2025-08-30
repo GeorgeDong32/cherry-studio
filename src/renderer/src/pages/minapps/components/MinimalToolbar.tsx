@@ -2,14 +2,12 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   CodeOutlined,
-  CopyOutlined,
   ExportOutlined,
   LinkOutlined,
   MinusOutlined,
   PushpinOutlined,
   ReloadOutlined
 } from '@ant-design/icons'
-import MinAppIcon from '@renderer/components/Icons/MinAppIcon'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useSettings } from '@renderer/hooks/useSettings'
@@ -89,45 +87,9 @@ const MinimalToolbar: FC<Props> = ({ app, webviewRef, currentUrl, onReload, onOp
     window.api.openWebsite(urlToOpen)
   }, [currentUrl, app.url])
 
-  const handleCopyUrl = useCallback(
-    (event: React.MouseEvent) => {
-      event.preventDefault()
-      const urlToCopy = currentUrl || app.url
-      navigator.clipboard
-        .writeText(urlToCopy)
-        .then(() => {
-          window.message.success('URL ' + t('message.copy.success'))
-        })
-        .catch(() => {
-          window.message.error('URL ' + t('message.copy.failed'))
-        })
-    },
-    [currentUrl, app.url, t]
-  )
-
   return (
     <ToolbarContainer>
       <LeftSection>
-        <AppInfo>
-          <AppIcon>
-            <MinAppIcon size={20} app={app} />
-          </AppIcon>
-          <Tooltip
-            title={
-              <span>
-                {currentUrl || app.url} <br />
-                <CopyOutlined style={{ fontSize: '0.7rem', paddingRight: '5px' }} />
-                {t('minapp.popup.rightclick_copyurl')}
-              </span>
-            }
-            mouseEnterDelay={0.8}
-            placement="bottom">
-            <AppName onContextMenu={handleCopyUrl}>{app.name}</AppName>
-          </Tooltip>
-        </AppInfo>
-      </LeftSection>
-
-      <RightSection>
         <ButtonGroup>
           <Tooltip title={t('minapp.popup.goBack')} placement="bottom">
             <ToolbarButton onClick={handleGoBack} $disabled={!canGoBack}>
@@ -146,7 +108,11 @@ const MinimalToolbar: FC<Props> = ({ app, webviewRef, currentUrl, onReload, onOp
               <ReloadOutlined />
             </ToolbarButton>
           </Tooltip>
+        </ButtonGroup>
+      </LeftSection>
 
+      <RightSection>
+        <ButtonGroup>
           {canOpenExternalLink && (
             <Tooltip title={t('minapp.popup.openExternal')} placement="bottom">
               <ToolbarButton onClick={handleOpenLink}>
@@ -211,28 +177,6 @@ const LeftSection = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-`
-
-const AppInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`
-
-const AppIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-`
-
-const AppName = styled.div`
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-  cursor: default;
-  user-select: none;
 `
 
 const RightSection = styled.div`

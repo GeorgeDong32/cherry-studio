@@ -8,6 +8,7 @@ import type { MenuProps } from 'antd'
 import { Dropdown, Tooltip } from 'antd'
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { DraggableList } from '../DraggableList'
@@ -20,6 +21,7 @@ export const TopNavbarOpenedMinappTabs: FC = () => {
   const { showOpenedMinappsInSidebar } = useSettings()
   const { theme } = useTheme()
   const { t } = useTranslation()
+  const location = useLocation()
   const [keepAliveMinapps, setKeepAliveMinapps] = useState(openedKeepAliveMinapps)
 
   useEffect(() => {
@@ -56,8 +58,12 @@ export const TopNavbarOpenedMinappTabs: FC = () => {
     }
   }
 
+  // Check if currently on a minapp tab page
+  const isOnMinappTabPage = location.pathname.startsWith('/apps/')
+
   // 检查是否需要显示已打开小程序组件
-  const isShowOpened = showOpenedMinappsInSidebar && keepAliveMinapps.length > 0
+  // 当使用Tab页面显示小程序时，不显示活跃小程序指示器
+  const isShowOpened = showOpenedMinappsInSidebar && keepAliveMinapps.length > 0 && !isOnMinappTabPage
 
   // 如果不需要显示，返回空容器
   if (!isShowOpened) return null

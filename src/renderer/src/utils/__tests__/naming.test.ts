@@ -343,7 +343,7 @@ describe('naming', () => {
       expect(geminiGroup.map((m) => m.name)).toContain('Gemini Flash')
 
       // 验证其他分组
-      const otherGroup = result['其他']
+      const otherGroup = result[t('settings.provider.misc')] // 现在默认是 'Other'
       expect(otherGroup).toHaveLength(1)
       expect(otherGroup[0].name).toBe('Other Model')
     })
@@ -369,11 +369,11 @@ describe('naming', () => {
       const result = groupModelsCaseInsensitive(testModels)
       const groupKeys = Object.keys(result)
 
-      // 按规范化键值排序：claude, gemini, gpt, 其他
+      // 按规范化键值排序：claude, gemini, gpt, other
       expect(groupKeys[0]).toBe('Claude')
       expect(groupKeys[1]).toBe('Gemini')
       expect(groupKeys[2]).toBe('GPT')
-      expect(groupKeys[3]).toBe('其他')
+      expect(groupKeys[3]).toBe('Other')
     })
 
     it('should work with custom groupKey function', () => {
@@ -413,6 +413,24 @@ describe('naming', () => {
       expect(result['zebra']).toHaveLength(2)
     })
 
+    it('should use custom default group name', () => {
+      // 验证使用自定义默认分组名称
+      const modelsWithoutGroup = [
+        { id: 'model1', name: 'Model 1', group: 'ValidGroup' },
+        { id: 'model2', name: 'Model 2' }, // 没有 group 字段
+        { id: 'model3', name: 'Model 3', group: '' }, // 空 group
+        { id: 'model4', name: 'Model 4', group: undefined } // undefined group
+      ]
+
+      const customDefaultName = '未分类'
+      const result = groupModelsCaseInsensitive(modelsWithoutGroup, 'group', customDefaultName)
+
+      expect(Object.keys(result)).toHaveLength(2)
+      expect(result['ValidGroup']).toHaveLength(1)
+      expect(result[customDefaultName]).toHaveLength(3) // 3个没有有效分组的模型
+      expect(result[customDefaultName].map((m) => m.name)).toEqual(['Model 2', 'Model 3', 'Model 4'])
+    })
+
     it('should work with custom groupKey field name', () => {
       // 验证使用自定义分组字段名
       const customModels = [
@@ -446,7 +464,7 @@ describe('naming', () => {
       const result = groupModelsCaseInsensitive(modelsWithEmptyGroups)
 
       expect(Object.keys(result)).toHaveLength(2)
-      expect(result['其他']).toHaveLength(3) // 空、undefined、缺失的都归到"其他"
+      expect(result['Other']).toHaveLength(3) // 空、undefined、缺失的都归到"Other"
       expect(result['Valid']).toHaveLength(1)
     })
 

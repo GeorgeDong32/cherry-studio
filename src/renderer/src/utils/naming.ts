@@ -152,17 +152,20 @@ export function removeSpecialCharactersForTopicName(str: string): string {
  * 大小写不敏感的模型分组函数
  * @param models 模型列表
  * @param groupKey 分组字段名或分组函数
+ * @param defaultGroupName 默认分组名称，当模型没有分组时使用
  * @returns 分组后的模型对象
  */
 export function groupModelsCaseInsensitive<T extends Record<string, any>>(
   models: T[],
-  groupKey: keyof T | ((item: T) => string) = 'group'
+  groupKey: keyof T | ((item: T) => string) = 'group',
+  defaultGroupName: string = 'Other'
 ): Record<string, T[]> {
   const normalizedGroups: Record<string, T[]> = {}
   const groupCaseMap: Record<string, string> = {} // 记录小写key到原始大小写的映射
 
   models.forEach((model) => {
-    const originalGroup = typeof groupKey === 'function' ? groupKey(model) : (model[groupKey] as string) || '其他'
+    const originalGroup =
+      typeof groupKey === 'function' ? groupKey(model) : (model[groupKey] as string) || defaultGroupName
     const normalizedKey = originalGroup.toLowerCase()
 
     if (!normalizedGroups[normalizedKey]) {
@@ -176,7 +179,7 @@ export function groupModelsCaseInsensitive<T extends Record<string, any>>(
 
   // 转换回正常的格式，使用原始大小写的分组名，并按key排序
   const result: Record<string, T[]> = {}
-  const sortedKeys = Object.keys(normalizedGroups).sort()
+  const sortedKeys = Object.keys(normalizedGroups).sort((a, b) => a.localeCompare(b))
 
   sortedKeys.forEach((normalizedKey) => {
     const displayName = groupCaseMap[normalizedKey]

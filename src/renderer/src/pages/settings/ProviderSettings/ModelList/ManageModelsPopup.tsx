@@ -117,13 +117,13 @@ const PopupContainer: React.FC<Props> = ({ providerId, resolve }) => {
       const otherModels = list.filter((model) => !model.id.startsWith('qwen'))
 
       return {
-        ...groupModelsCaseInsensitive(otherModels),
-        ...groupQwenModels(qwenModels)
+        ...groupModelsCaseInsensitive(otherModels, 'group', t('settings.provider.misc')),
+        ...groupQwenModels(qwenModels, t('settings.provider.misc'))
       }
     } else {
-      return groupModelsCaseInsensitive(list)
+      return groupModelsCaseInsensitive(list, 'group', t('settings.provider.misc'))
     }
-  }, [list, provider.id])
+  }, [list, provider.id, t])
 
   const onOk = useCallback(() => setOpen(false), [])
 

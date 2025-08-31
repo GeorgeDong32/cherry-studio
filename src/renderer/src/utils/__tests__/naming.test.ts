@@ -1,5 +1,4 @@
 import { Provider, SystemProvider } from '@renderer/types'
-import { t } from 'i18next'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -317,11 +316,23 @@ describe('naming', () => {
       { id: 'other-model', name: 'Other Model' } // 没有 group 字段
     ]
 
+    // 模拟国际化函数
+    const createMockT = (locale: 'en' | 'zh' | 'fr' | 'es' = 'en') => {
+      const translations = {
+        en: { 'settings.provider.misc': 'Other' },
+        zh: { 'settings.provider.misc': '其他' },
+        fr: { 'settings.provider.misc': 'autre' },
+        es: { 'settings.provider.misc': 'otro' }
+      }
+      return (key: string) => translations[locale][key] || key
+    }
+
     it('should group models case-insensitively using default group field', () => {
       // 验证使用默认 group 字段进行大小写不敏感分组
-      const result = groupModelsCaseInsensitive(testModels)
+      const mockT = createMockT('en')
+      const result = groupModelsCaseInsensitive(testModels, 'group', mockT('settings.provider.misc'))
 
-      // 验证分组数量 - 应该有 4 个分组：GPT, Claude, Gemini, 其他
+      // 验证分组数量 - 应该有 4 个分组：GPT, Claude, Gemini, Other
       expect(Object.keys(result)).toHaveLength(4)
 
       // 验证 GPT 分组包含所有 GPT 相关模型
@@ -344,7 +355,8 @@ describe('naming', () => {
       expect(geminiGroup.map((m) => m.name)).toContain('Gemini Flash')
 
       // 验证其他分组
-      const otherGroup = result[t('settings.provider.misc')]
+      const otherGroupName = mockT('settings.provider.misc')
+      const otherGroup = result[otherGroupName]
       expect(otherGroup).toHaveLength(1)
       expect(otherGroup[0].name).toBe('Other Model')
     })
@@ -367,14 +379,15 @@ describe('naming', () => {
 
     it('should sort groups alphabetically by normalized key', () => {
       // 验证分组按规范化键值字母顺序排序
-      const result = groupModelsCaseInsensitive(testModels)
+      const mockT = createMockT('en')
+      const result = groupModelsCaseInsensitive(testModels, 'group', mockT('settings.provider.misc'))
       const groupKeys = Object.keys(result)
 
       // 按规范化键值排序：claude, gemini, gpt, other
       expect(groupKeys[0]).toBe('Claude')
       expect(groupKeys[1]).toBe('Gemini')
       expect(groupKeys[2]).toBe('GPT')
-      expect(groupKeys[3]).toBe('Other')
+      expect(groupKeys[3]).toBe(mockT('settings.provider.misc')) // 'Other' for English
     })
 
     it('should work with custom groupKey function', () => {
@@ -432,6 +445,32 @@ describe('naming', () => {
       expect(result[customDefaultName].map((m) => m.name)).toEqual(['Model 2', 'Model 3', 'Model 4'])
     })
 
+    it('should work with internationalized default group name', () => {
+      // 验证国际化默认分组名称支持
+      const modelsWithMixedGroups = [
+        { id: 'model1', name: 'Model 1', group: 'GPT' },
+        { id: 'model2', name: 'Model 2' }, // 没有分组，应该使用默认分组
+        { id: 'model3', name: 'Model 3', group: '' }
+      ]
+
+      // 模拟不同语言环境的默认分组名称
+      const testCases = [
+        { defaultName: 'Other', language: 'en' },
+        { defaultName: '其他', language: 'zh' },
+        { defaultName: 'autre', language: 'fr' },
+        { defaultName: 'otro', language: 'es' }
+      ]
+
+      testCases.forEach(({ defaultName }) => {
+        const result = groupModelsCaseInsensitive(modelsWithMixedGroups, 'group', defaultName)
+
+        expect(Object.keys(result)).toHaveLength(2)
+        expect(result['GPT']).toHaveLength(1)
+        expect(result[defaultName]).toHaveLength(2) // 两个没有有效分组的模型
+        expect(result[defaultName].map((m) => m.name)).toEqual(['Model 2', 'Model 3'])
+      })
+    })
+
     it('should work with custom groupKey field name', () => {
       // 验证使用自定义分组字段名
       const customModels = [
@@ -462,10 +501,11 @@ describe('naming', () => {
         { id: 'model4', name: 'Model 4', group: 'Valid' }
       ]
 
-      const result = groupModelsCaseInsensitive(modelsWithEmptyGroups)
+      const mockT = createMockT('en')
+      const result = groupModelsCaseInsensitive(modelsWithEmptyGroups, 'group', mockT('settings.provider.misc'))
 
       expect(Object.keys(result)).toHaveLength(2)
-      expect(result['Other']).toHaveLength(3) // 空、undefined、缺失的都归到"Other"
+      expect(result[mockT('settings.provider.misc')]).toHaveLength(3) // 空、undefined、缺失的都归到国际化的默认分组
       expect(result['Valid']).toHaveLength(1)
     })
 

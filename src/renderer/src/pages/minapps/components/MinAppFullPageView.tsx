@@ -148,6 +148,7 @@ const WebviewArea = styled.div`
   position: relative;
   overflow: hidden;
   background-color: var(--color-background);
+  min-height: 0; /* Ensure flex child can shrink */
 `
 
 const LoadingOverlay = styled.div`

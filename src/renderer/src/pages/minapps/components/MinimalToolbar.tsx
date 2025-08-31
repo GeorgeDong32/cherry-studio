@@ -169,7 +169,6 @@ const ToolbarContainer = styled.div`
   height: 35px;
   padding: 0 12px;
   background-color: var(--color-background);
-  border-bottom: 0.5px solid var(--color-border);
   flex-shrink: 0;
 `
 

@@ -1,4 +1,5 @@
 import { Provider, SystemProvider } from '@renderer/types'
+import { t } from 'i18next'
 import { describe, expect, it } from 'vitest'
 
 import {

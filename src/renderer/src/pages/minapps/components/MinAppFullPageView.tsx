@@ -22,13 +22,15 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
   const [isReady, setIsReady] = useState(false)
   const [currentUrl, setCurrentUrl] = useState<string | null>(null)
   const { minappsOpenLinkExternal } = useSettings()
-  const { setTimeoutTimer } = useTimer()
+  const { setTimeoutTimer, clearTimeoutTimer } = useTimer()
 
   // Initialize when app changes
   useEffect(() => {
     setCurrentUrl(app.url)
     setIsReady(false)
-  }, [app])
+    // Clear any pending loading timer when app changes
+    clearTimeoutTimer('handleWebviewLoaded')
+  }, [app, clearTimeoutTimer])
 
   const handleWebviewSetRef = useCallback((_appId: string, element: WebviewTag | null) => {
     webviewRef.current = element
@@ -40,7 +42,8 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
       if (webviewId) {
         window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
       }
-      setTimeoutTimer('handleWebviewLoaded', () => setIsReady(true), 200)
+      // useTimer automatically clears existing timer with same key
+      setTimeoutTimer('handleWebviewLoaded', () => setIsReady(true), 500)
     },
     [minappsOpenLinkExternal, setTimeoutTimer]
   )
@@ -52,6 +55,7 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
 
   const handleReload = useCallback(() => {
     if (webviewRef.current) {
+      setIsReady(false) // Set loading state when reloading
       webviewRef.current.src = app.url
     }
   }, [app.url])

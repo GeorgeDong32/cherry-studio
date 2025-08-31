@@ -28,6 +28,7 @@ import { Alert, Avatar, Button, Drawer, Tooltip } from 'antd'
 import { WebviewTag } from 'electron'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import BeatLoader from 'react-spinners/BeatLoader'
 import styled from 'styled-components'
 
@@ -147,6 +148,7 @@ const MinappPopupContainer: React.FC = () => {
   const backgroundColor = useNavBackgroundColor()
   const { isTopNavbar } = useNavbarPosition()
   const dispatch = useAppDispatch()
+  const location = useLocation()
 
   /** control the drawer open or close */
   const [isPopupShow, setIsPopupShow] = useState(true)
@@ -572,7 +574,7 @@ const MinappPopupContainer: React.FC = () => {
       {/* 顶部导航栏模式下显示固定工具栏 */}
       {isTopNavbar && currentAppInfo && isReady && <FixedToolbar appInfo={currentAppInfo} url={currentUrl} />}
 
-      {!isReady && (
+      {!isReady && !location.pathname.startsWith('/apps/') && (
         <EmptyView>
           <Avatar
             src={currentAppInfo?.logo}

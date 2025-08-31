@@ -42,8 +42,14 @@ const WebviewContainer = memo(
     useEffect(() => {
       if (!webviewRef.current) return
 
+      let loadCallbackFired = false
+
       const handleLoaded = () => {
-        onLoadedCallback(appid)
+        // Only fire callback once per load cycle
+        if (!loadCallbackFired) {
+          loadCallbackFired = true
+          onLoadedCallback(appid)
+        }
       }
 
       const handleNavigate = (event: any) => {
@@ -55,8 +61,22 @@ const WebviewContainer = memo(
         if (webviewId) {
           window.api?.webview?.setSpellCheckEnabled?.(webviewId, enableSpellCheck)
         }
+
+        // Wait a bit more after DOM ready to ensure content is actually visible
+        setTimeout(() => {
+          if (!loadCallbackFired && webviewRef.current) {
+            loadCallbackFired = true
+            onLoadedCallback(appid)
+          }
+        }, 100)
       }
 
+      const handleStartLoading = () => {
+        // Reset callback flag when starting a new load
+        loadCallbackFired = false
+      }
+
+      webviewRef.current.addEventListener('did-start-loading', handleStartLoading)
       webviewRef.current.addEventListener('dom-ready', handleDomReady)
       webviewRef.current.addEventListener('did-finish-load', handleLoaded)
       webviewRef.current.addEventListener('did-navigate-in-page', handleNavigate)
@@ -65,6 +85,7 @@ const WebviewContainer = memo(
       webviewRef.current.src = url
 
       return () => {
+        webviewRef.current?.removeEventListener('did-start-loading', handleStartLoading)
         webviewRef.current?.removeEventListener('dom-ready', handleDomReady)
         webviewRef.current?.removeEventListener('did-finish-load', handleLoaded)
         webviewRef.current?.removeEventListener('did-navigate-in-page', handleNavigate)

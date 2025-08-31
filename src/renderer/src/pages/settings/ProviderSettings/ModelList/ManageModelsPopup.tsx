@@ -27,7 +27,7 @@ import {
 import { isFreeModel } from '@renderer/utils/model'
 import { Button, Empty, Flex, Modal, Spin, Tabs, Tooltip } from 'antd'
 import Input from 'antd/es/input/Input'
-import { groupBy, isEmpty, uniqBy } from 'lodash'
+import { isEmpty, uniqBy } from 'lodash'
 import { debounce } from 'lodash'
 import { ListMinus, ListPlus, RefreshCcw, Search } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from 'react'

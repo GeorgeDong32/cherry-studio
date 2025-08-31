@@ -18,7 +18,12 @@ import NewApiAddModelPopup from '@renderer/pages/settings/ProviderSettings/Model
 import NewApiBatchAddModelPopup from '@renderer/pages/settings/ProviderSettings/ModelList/NewApiBatchAddModelPopup'
 import { fetchModels } from '@renderer/services/ApiService'
 import { Model, Provider } from '@renderer/types'
-import { filterModelsByKeywords, getDefaultGroupName, getFancyProviderName } from '@renderer/utils'
+import {
+  filterModelsByKeywords,
+  getDefaultGroupName,
+  getFancyProviderName,
+  groupModelsCaseInsensitive
+} from '@renderer/utils'
 import { isFreeModel } from '@renderer/utils/model'
 import { Button, Empty, Flex, Modal, Spin, Tabs, Tooltip } from 'antd'
 import Input from 'antd/es/input/Input'
@@ -106,19 +111,19 @@ const PopupContainer: React.FC<Props> = ({ providerId, resolve }) => {
     [filterSearchText, actualFilterType, allModels]
   )
 
-  const modelGroups = useMemo(
-    () =>
-      provider.id === 'dashscope'
-        ? {
-            ...groupBy(
-              list.filter((model) => !model.id.startsWith('qwen')),
-              'group'
-            ),
-            ...groupQwenModels(list.filter((model) => model.id.startsWith('qwen')))
-          }
-        : groupBy(list, 'group'),
-    [list, provider.id]
-  )
+  const modelGroups = useMemo(() => {
+    if (provider.id === 'dashscope') {
+      const qwenModels = list.filter((model) => model.id.startsWith('qwen'))
+      const otherModels = list.filter((model) => !model.id.startsWith('qwen'))
+
+      return {
+        ...groupModelsCaseInsensitive(otherModels),
+        ...groupQwenModels(qwenModels)
+      }
+    } else {
+      return groupModelsCaseInsensitive(list)
+    }
+  }, [list, provider.id])
 
   const onOk = useCallback(() => setOpen(false), [])
 

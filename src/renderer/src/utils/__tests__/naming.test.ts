@@ -344,7 +344,7 @@ describe('naming', () => {
       expect(geminiGroup.map((m) => m.name)).toContain('Gemini Flash')
 
       // 验证其他分组
-      const otherGroup = result[t('settings.provider.misc')] // 现在默认是 'Other'
+      const otherGroup = result[t('settings.provider.misc')]
       expect(otherGroup).toHaveLength(1)
       expect(otherGroup[0].name).toBe('Other Model')
     })

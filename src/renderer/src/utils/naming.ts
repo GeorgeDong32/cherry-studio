@@ -154,7 +154,7 @@ export function removeSpecialCharactersForTopicName(str: string): string {
  * @param groupKey 分组字段名或分组函数
  * @returns 分组后的模型对象
  */
-export function groupModelsCaseInsensitive<T extends { group?: string }>(
+export function groupModelsCaseInsensitive<T extends Record<string, any>>(
   models: T[],
   groupKey: keyof T | ((item: T) => string) = 'group'
 ): Record<string, T[]> {

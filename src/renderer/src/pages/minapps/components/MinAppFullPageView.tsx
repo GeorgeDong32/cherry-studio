@@ -117,10 +117,12 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
 
       <WebviewArea>
         {!isReady && (
-          <LoadingOverlay>
-            <Avatar src={app.logo} size={60} style={{ border: '1px solid var(--color-border)' }} />
-            <BeatLoader color="var(--color-text-2)" size={8} style={{ marginTop: 12 }} />
-          </LoadingOverlay>
+          <LoadingMask>
+            <LoadingOverlay>
+              <Avatar src={app.logo} size={60} style={{ border: '1px solid var(--color-border)' }} />
+              <BeatLoader color="var(--color-text-2)" size={8} style={{ marginTop: 12 }} />
+            </LoadingOverlay>
+          </LoadingMask>
         )}
 
         <WebviewContainer
@@ -151,15 +153,23 @@ const WebviewArea = styled.div`
   min-height: 0; /* Ensure flex child can shrink */
 `
 
-const LoadingOverlay = styled.div`
+const LoadingMask = styled.div`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-background);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+const LoadingOverlay = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 10;
   pointer-events: none;
 `
 

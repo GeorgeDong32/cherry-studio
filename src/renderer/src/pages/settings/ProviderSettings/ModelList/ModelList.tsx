@@ -32,9 +32,9 @@ const MODEL_COUNT_THRESHOLD = 10
  * 根据搜索文本筛选模型、分组并排序
  * 使用大小写不敏感的分组来避免重复分组
  */
-const calculateModelGroups = (models: Model[], searchText: string): ModelGroups => {
+const calculateModelGroups = (models: Model[], searchText: string, t: (key: string) => string): ModelGroups => {
   const filteredModels = searchText ? filterModelsByKeywords(searchText, models) : models
-  return groupModelsCaseInsensitive(filteredModels)
+  return groupModelsCaseInsensitive(filteredModels, 'group', t('settings.provider.misc'))
 }
 
 /**
@@ -54,7 +54,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
     if (models.length > MODEL_COUNT_THRESHOLD) {
       return null
     }
-    return calculateModelGroups(models, '')
+    return calculateModelGroups(models, '', t)
   })
 
   const { isChecking: isHealthChecking, modelStatuses, runHealthCheck } = useHealthCheck(provider, models)
@@ -68,12 +68,12 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
   useEffect(() => {
     if (models.length > MODEL_COUNT_THRESHOLD) {
       startTransition(() => {
-        setDisplayedModelGroups(calculateModelGroups(models, searchText))
+        setDisplayedModelGroups(calculateModelGroups(models, searchText, t))
       })
     } else {
-      setDisplayedModelGroups(calculateModelGroups(models, searchText))
+      setDisplayedModelGroups(calculateModelGroups(models, searchText, t))
     }
-  }, [models, searchText])
+  }, [models, searchText, t])
 
   const modelCount = useMemo(() => {
     return Object.values(displayedModelGroups ?? {}).reduce((acc, group) => acc + group.length, 0)

@@ -3142,16 +3142,21 @@ export function isHunyuanSearchModel(model?: Model): boolean {
 /**
  * 按 Qwen 系列模型分组
  * @param models 模型列表
+ * @param defaultGroupName 默认分组名称，通常从国际化获取
  * @returns 分组后的模型
  */
-export function groupQwenModels(models: Model[]): Record<string, Model[]> {
-  return groupModelsCaseInsensitive(models, (model: Model) => {
-    const modelId = getLowerBaseModelName(model.id)
-    // 匹配 Qwen 系列模型的前缀
-    const prefixMatch = modelId.match(/^(qwen(?:\d+\.\d+|2(?:\.\d+)?|-\d+b|-(?:max|coder|vl)))/i)
-    // 匹配 qwen2.5、qwen2、qwen-7b、qwen-max、qwen-coder 等
-    return prefixMatch ? prefixMatch[1] : model.group || '其他'
-  })
+export function groupQwenModels(models: Model[], defaultGroupName: string = 'Other'): Record<string, Model[]> {
+  return groupModelsCaseInsensitive(
+    models,
+    (model: Model) => {
+      const modelId = getLowerBaseModelName(model.id)
+      // 匹配 Qwen 系列模型的前缀
+      const prefixMatch = modelId.match(/^(qwen(?:\d+\.\d+|2(?:\.\d+)?|-\d+b|-(?:max|coder|vl)))/i)
+      // 匹配 qwen2.5、qwen2、qwen-7b、qwen-max、qwen-coder 等
+      return prefixMatch ? prefixMatch[1] : model.group || defaultGroupName
+    },
+    defaultGroupName
+  )
 }
 
 export const THINKING_TOKEN_MAP: Record<string, { min: number; max: number }> = {

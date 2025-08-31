@@ -1,12 +1,15 @@
+import { loggerService } from '@logger'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
-import { FC, useEffect } from 'react'
+import { FC, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
 import MinAppFullPageView from './components/MinAppFullPageView'
+
+const logger = loggerService.withContext('MinAppPage')
 
 const MinAppPage: FC = () => {
   const { appId } = useParams<{ appId: string }>()
@@ -14,6 +17,17 @@ const MinAppPage: FC = () => {
   const { openMinappKeepAlive } = useMinappPopup()
   const { minapps } = useMinapps()
   const navigate = useNavigate()
+
+  // Remember the initial navbar position when component mounts
+  const initialIsTopNavbar = useRef<boolean>(isTopNavbar)
+  const hasRedirected = useRef<boolean>(false)
+
+  // Debug: track navbar position changes
+  useEffect(() => {
+    if (initialIsTopNavbar.current !== isTopNavbar) {
+      logger.debug(`NavBar position changed from ${initialIsTopNavbar.current} to ${isTopNavbar}`)
+    }
+  }, [isTopNavbar])
 
   // Find the app from all available apps
   const app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
@@ -26,7 +40,9 @@ const MinAppPage: FC = () => {
     }
 
     // For sidebar navigation, redirect to apps list and open popup
-    if (!isTopNavbar) {
+    // Only check once and only if we haven't already redirected
+    if (!initialIsTopNavbar.current && !hasRedirected.current) {
+      hasRedirected.current = true
       navigate('/apps')
       // Open popup after navigation
       setTimeout(() => {
@@ -34,10 +50,10 @@ const MinAppPage: FC = () => {
       }, 100)
       return
     }
-  }, [app, isTopNavbar, navigate, openMinappKeepAlive])
+  }, [app, navigate, openMinappKeepAlive])
 
-  // Don't render anything if app not found or redirecting
-  if (!app || !isTopNavbar) {
+  // Don't render anything if app not found or not in top navbar mode initially
+  if (!app || !initialIsTopNavbar.current) {
     return null
   }
 

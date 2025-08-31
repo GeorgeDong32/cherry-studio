@@ -1,12 +1,25 @@
 import { loggerService } from '@logger'
 import store from '@renderer/store'
 import { removeTab, setActiveTab } from '@renderer/store/tabs'
+import { MinAppType } from '@renderer/types'
+import { clearWebviewState } from '@renderer/utils/webviewStateManager'
+import { LRUCache } from 'lru-cache'
 
 import NavigationService from './NavigationService'
 
 const logger = loggerService.withContext('TabsService')
 
 class TabsService {
+  private minAppsCache: LRUCache<string, MinAppType> | null = null
+
+  /**
+   * Set the mini-apps cache reference for cleanup operations
+   * @param cache LRU cache instance from useMinappPopup
+   */
+  public setMinAppsCache(cache: LRUCache<string, MinAppType>) {
+    this.minAppsCache = cache
+    logger.debug('Mini-apps cache reference set in TabsService')
+  }
   /**
    * 关闭指定的标签页
    * @param tabId 要关闭的标签页ID
@@ -49,11 +62,40 @@ class TabsService {
       }
     }
 
+    // Clean up mini-app cache if this is a mini-app tab
+    this.cleanupMinAppCache(tabId)
+
     // 使用 Redux action 移除标签页
     store.dispatch(removeTab(tabId))
 
     logger.info(`Tab ${tabId} closed successfully`)
     return true
+  }
+
+  /**
+   * Clean up mini-app cache and WebView state when tab is closed
+   * @param tabId The tab ID to clean up
+   */
+  private cleanupMinAppCache(tabId: string) {
+    // Check if this is a mini-app tab (format: /apps/{appId})
+    const tabs = store.getState().tabs.tabs
+    const tab = tabs.find((t) => t.id === tabId)
+
+    if (tab && tab.path.startsWith('/apps/')) {
+      const appId = tab.path.replace('/apps/', '')
+
+      if (this.minAppsCache && this.minAppsCache.has(appId)) {
+        logger.debug(`Cleaning up mini-app cache for app: ${appId}`)
+
+        // Remove from LRU cache - this will trigger disposeAfter callback
+        this.minAppsCache.delete(appId)
+
+        // Clear WebView state
+        clearWebviewState(appId)
+
+        logger.info(`Mini-app ${appId} removed from cache due to tab closure`)
+      }
+    }
   }
 
   /**

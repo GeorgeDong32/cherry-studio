@@ -24,11 +24,11 @@ import { useAppDispatch } from '@renderer/store'
 import { setMinappsOpenLinkExternal } from '@renderer/store/settings'
 import { MinAppType } from '@renderer/types'
 import { delay } from '@renderer/utils'
+import { clearWebviewState, getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
 import { Alert, Avatar, Button, Drawer, Tooltip } from 'antd'
 import { WebviewTag } from 'electron'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'react-router-dom'
 import BeatLoader from 'react-spinners/BeatLoader'
 import styled from 'styled-components'
 
@@ -148,7 +148,6 @@ const MinappPopupContainer: React.FC = () => {
   const backgroundColor = useNavBackgroundColor()
   const { isTopNavbar } = useNavbarPosition()
   const dispatch = useAppDispatch()
-  const location = useLocation()
 
   /** control the drawer open or close */
   const [isPopupShow, setIsPopupShow] = useState(true)
@@ -164,8 +163,7 @@ const MinappPopupContainer: React.FC = () => {
 
   /** store the webview refs, one of the key to make them keepalive */
   const webviewRefs = useRef<Map<string, WebviewTag | null>>(new Map())
-  /** indicate whether the webview has loaded  */
-  const webviewLoadedRefs = useRef<Map<string, boolean>>(new Map())
+  /** Note: WebView loaded states now managed globally via webviewStateManager */
   /** whether the minapps open link external is enabled */
   const { minappsOpenLinkExternal } = useSettings()
 
@@ -187,7 +185,7 @@ const MinappPopupContainer: React.FC = () => {
 
       setIsPopupShow(true)
 
-      if (webviewLoadedRefs.current.get(currentMinappId)) {
+      if (getWebviewLoaded(currentMinappId)) {
         setIsReady(true)
         /** the case that open the minapp from sidebar */
       } else if (lastMinappId.current !== currentMinappId && lastMinappShow.current === minappShow) {
@@ -218,17 +216,21 @@ const MinappPopupContainer: React.FC = () => {
       webviewRef.style.display = appid === currentMinappId ? 'inline-flex' : 'none'
     })
 
-    //delete the extra webviewLoadedRefs
-    webviewLoadedRefs.current.forEach((_, appid) => {
-      if (!webviewRefs.current.has(appid)) {
-        webviewLoadedRefs.current.delete(appid)
-      } else if (appid === currentMinappId) {
-        const webviewId = webviewRefs.current.get(appid)?.getWebContentsId()
-        if (webviewId) {
-          window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
+    // Set external link behavior for current minapp
+    if (currentMinappId) {
+      const webviewElement = webviewRefs.current.get(currentMinappId)
+      if (webviewElement) {
+        try {
+          const webviewId = webviewElement.getWebContentsId()
+          if (webviewId) {
+            window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
+          }
+        } catch (error) {
+          // WebView not ready yet, will be set when it's loaded
+          logger.debug(`WebView ${currentMinappId} not ready for getWebContentsId()`)
         }
       }
-    })
+    }
   }, [currentMinappId, minappsOpenLinkExternal])
 
   /** only the keepalive minapp can be minimized */
@@ -257,15 +259,17 @@ const MinappPopupContainer: React.FC = () => {
   /** get the current app info with extra info */
   let currentAppInfo: AppInfo | null = null
   if (currentMinappId) {
-    const currentApp = combinedApps.find((item) => item.id === currentMinappId) as MinAppType
-    currentAppInfo = { ...currentApp, ...appsExtraInfo[currentApp.id] }
+    const currentApp = combinedApps.find((item) => item.id === currentMinappId)
+    if (currentApp) {
+      currentAppInfo = { ...currentApp, ...appsExtraInfo[currentApp.id] }
+    }
   }
 
   /** will close the popup and delete the webview */
   const handlePopupClose = async (appid: string) => {
     setIsPopupShow(false)
     await delay(0.3)
-    webviewLoadedRefs.current.delete(appid)
+    clearWebviewState(appid)
     closeMinapp(appid)
   }
 
@@ -294,10 +298,17 @@ const MinappPopupContainer: React.FC = () => {
 
   /** the callback function to set the webviews loaded indicator */
   const handleWebviewLoaded = (appid: string) => {
-    webviewLoadedRefs.current.set(appid, true)
-    const webviewId = webviewRefs.current.get(appid)?.getWebContentsId()
-    if (webviewId) {
-      window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
+    setWebviewLoaded(appid, true)
+    const webviewElement = webviewRefs.current.get(appid)
+    if (webviewElement) {
+      try {
+        const webviewId = webviewElement.getWebContentsId()
+        if (webviewId) {
+          window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
+        }
+      } catch (error) {
+        logger.debug(`WebView ${appid} not ready for getWebContentsId() in handleWebviewLoaded`)
+      }
     }
     if (appid == currentMinappId) {
       setTimeoutTimer('handleWebviewLoaded', () => setIsReady(true), 200)
@@ -354,16 +365,28 @@ const MinappPopupContainer: React.FC = () => {
   /** navigate back in webview history */
   const handleGoBack = (appid: string) => {
     const webview = webviewRefs.current.get(appid)
-    if (webview && webview.canGoBack()) {
-      webview.goBack()
+    if (webview) {
+      try {
+        if (webview.canGoBack()) {
+          webview.goBack()
+        }
+      } catch (error) {
+        logger.debug(`WebView ${appid} not ready for goBack()`)
+      }
     }
   }
 
   /** navigate forward in webview history */
   const handleGoForward = (appid: string) => {
     const webview = webviewRefs.current.get(appid)
-    if (webview && webview.canGoForward()) {
-      webview.goForward()
+    if (webview) {
+      try {
+        if (webview.canGoForward()) {
+          webview.goForward()
+        }
+      } catch (error) {
+        logger.debug(`WebView ${appid} not ready for goForward()`)
+      }
     }
   }
 
@@ -486,8 +509,18 @@ const MinappPopupContainer: React.FC = () => {
     if (!appInfo) return null
 
     const webview = webviewRefs.current.get(appInfo.id)
-    const canGoBack = webview?.canGoBack() || false
-    const canGoForward = webview?.canGoForward() || false
+    let canGoBack = false
+    let canGoForward = false
+
+    if (webview) {
+      try {
+        canGoBack = webview.canGoBack() || false
+        canGoForward = webview.canGoForward() || false
+      } catch (error) {
+        // WebView not ready yet
+        logger.debug(`WebView ${appInfo.id} not ready for navigation methods`)
+      }
+    }
 
     return (
       <FixedToolbarContainer>
@@ -574,7 +607,7 @@ const MinappPopupContainer: React.FC = () => {
       {/* 顶部导航栏模式下显示固定工具栏 */}
       {isTopNavbar && currentAppInfo && isReady && <FixedToolbar appInfo={currentAppInfo} url={currentUrl} />}
 
-      {!isReady && !location.pathname.startsWith('/apps/') && (
+      {!isReady && (
         <EmptyView>
           <Avatar
             src={currentAppInfo?.logo}

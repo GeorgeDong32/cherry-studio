@@ -2,6 +2,7 @@ import { loggerService } from '@logger'
 import WebviewContainer from '@renderer/components/MinApp/WebviewContainer'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { MinAppType } from '@renderer/types'
+import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
 import { Avatar } from 'antd'
 import { WebviewTag } from 'electron'
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
@@ -16,9 +17,6 @@ interface Props {
   app: MinAppType
 }
 
-// Persistent storage for WebView loaded states (similar to MinappPopupContainer)
-const webviewLoadedStates = new Map<string, boolean>()
-
 const MinAppFullPageView: FC<Props> = ({ app }) => {
   const webviewRef = useRef<WebviewTag | null>(null)
   const [isReady, setIsReady] = useState(false)
@@ -30,12 +28,12 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
     logger.debug(`isReady state changed to: ${isReady}`)
   }, [isReady])
 
-  // Initialize when app changes - smart loading state detection
+  // Initialize when app changes - smart loading state detection using global state
   useEffect(() => {
     setCurrentUrl(app.url)
 
-    // Check if this WebView has been loaded before (keep-alive state)
-    if (webviewLoadedStates.get(app.id)) {
+    // Check if this WebView has been loaded before using global state manager
+    if (getWebviewLoaded(app.id)) {
       logger.debug(`App ${app.id} already loaded before, setting ready immediately`)
       setIsReady(true)
       return // No cleanup needed for immediate ready state
@@ -67,8 +65,8 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
         window.api.webview.setOpenLinkExternal(webviewId, minappsOpenLinkExternal)
       }
 
-      // Mark this WebView as loaded for future use
-      webviewLoadedStates.set(appId, true)
+      // Mark this WebView as loaded for future use in global state
+      setWebviewLoaded(appId, true)
 
       // Use small delay like MinappPopupContainer (100ms) to ensure content is visible
       if (appId === app.id) {
@@ -88,8 +86,8 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
 
   const handleReload = useCallback(() => {
     if (webviewRef.current) {
-      // Clear the loaded state for this app since we're reloading
-      webviewLoadedStates.delete(app.id)
+      // Clear the loaded state for this app since we're reloading using global state
+      setWebviewLoaded(app.id, false)
       setIsReady(false) // Set loading state when reloading
       webviewRef.current.src = app.url
 

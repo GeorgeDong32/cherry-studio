@@ -2,7 +2,9 @@ import { loggerService } from '@logger'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
+import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
+import TabsService from '@renderer/services/TabsService'
 import { FC, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
@@ -14,13 +16,21 @@ const logger = loggerService.withContext('MinAppPage')
 const MinAppPage: FC = () => {
   const { appId } = useParams<{ appId: string }>()
   const { isTopNavbar } = useNavbarPosition()
-  const { openMinappKeepAlive } = useMinappPopup()
+  const { openMinappKeepAlive, minAppsCache } = useMinappPopup()
   const { minapps } = useMinapps()
+  const { openedKeepAliveMinapps } = useRuntime()
   const navigate = useNavigate()
 
   // Remember the initial navbar position when component mounts
   const initialIsTopNavbar = useRef<boolean>(isTopNavbar)
   const hasRedirected = useRef<boolean>(false)
+
+  // Initialize TabsService with cache reference
+  useEffect(() => {
+    if (minAppsCache) {
+      TabsService.setMinAppsCache(minAppsCache)
+    }
+  }, [minAppsCache])
 
   // Debug: track navbar position changes
   useEffect(() => {
@@ -50,7 +60,21 @@ const MinAppPage: FC = () => {
       }, 100)
       return
     }
-  }, [app, navigate, openMinappKeepAlive])
+
+    // For top navbar mode, integrate with cache system
+    if (initialIsTopNavbar.current) {
+      // Check if app is already in the keep-alive cache
+      const isAlreadyInCache = openedKeepAliveMinapps.some((cachedApp) => cachedApp.id === app.id)
+
+      if (!isAlreadyInCache) {
+        logger.debug(`Adding app ${app.id} to keep-alive cache via openMinappKeepAlive`)
+        // Add to cache without showing popup (for tab mode)
+        openMinappKeepAlive(app)
+      } else {
+        logger.debug(`App ${app.id} already in keep-alive cache`)
+      }
+    }
+  }, [app, navigate, openMinappKeepAlive, openedKeepAliveMinapps, initialIsTopNavbar])
 
   // Don't render anything if app not found or not in top navbar mode initially
   if (!app || !initialIsTopNavbar.current) {

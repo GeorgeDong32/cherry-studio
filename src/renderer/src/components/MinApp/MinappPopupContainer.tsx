@@ -504,64 +504,6 @@ const MinappPopupContainer: React.FC = () => {
     )
   }
 
-  /** Fixed toolbar for top navbar mode */
-  const FixedToolbar = ({ appInfo }: { appInfo: AppInfo | null; url: string | null }) => {
-    if (!appInfo) return null
-
-    const webview = webviewRefs.current.get(appInfo.id)
-    let canGoBack = false
-    let canGoForward = false
-
-    if (webview) {
-      try {
-        canGoBack = webview.canGoBack() || false
-        canGoForward = webview.canGoForward() || false
-      } catch (error) {
-        // WebView not ready yet
-        logger.debug(`WebView ${appInfo.id} not ready for navigation methods`)
-      }
-    }
-
-    return (
-      <FixedToolbarContainer>
-        <ToolbarButtonGroup>
-          <Tooltip title={t('minapp.popup.goBack')} mouseEnterDelay={0.8} placement="bottom">
-            <ToolbarButton onClick={() => handleGoBack(appInfo.id)} disabled={!canGoBack}>
-              <ArrowLeftOutlined />
-            </ToolbarButton>
-          </Tooltip>
-          <Tooltip title={t('minapp.popup.goForward')} mouseEnterDelay={0.8} placement="bottom">
-            <ToolbarButton onClick={() => handleGoForward(appInfo.id)} disabled={!canGoForward}>
-              <ArrowRightOutlined />
-            </ToolbarButton>
-          </Tooltip>
-          <Tooltip title={t('minapp.popup.refresh')} mouseEnterDelay={0.8} placement="bottom">
-            <ToolbarButton onClick={() => handleReload(appInfo.id)}>
-              <ReloadOutlined />
-            </ToolbarButton>
-          </Tooltip>
-        </ToolbarButtonGroup>
-
-        <ToolbarTitle>{appInfo.name}</ToolbarTitle>
-
-        <ToolbarButtonGroup>
-          {canMinimize && (
-            <Tooltip title={t('minapp.popup.minimize')} mouseEnterDelay={0.8} placement="bottom">
-              <ToolbarButton onClick={() => handlePopupMinimize()}>
-                <MinusOutlined />
-              </ToolbarButton>
-            </Tooltip>
-          )}
-          <Tooltip title={t('minapp.popup.close')} mouseEnterDelay={0.8} placement="bottom">
-            <ToolbarButton onClick={() => handlePopupClose(appInfo.id)}>
-              <CloseOutlined />
-            </ToolbarButton>
-          </Tooltip>
-        </ToolbarButtonGroup>
-      </FixedToolbarContainer>
-    )
-  }
-
   /** group the webview containers with Memo, one of the key to make them keepalive */
   const WebviewContainerGroup = useMemo(() => {
     return combinedApps.map((app) => (
@@ -589,38 +531,18 @@ const MinappPopupContainer: React.FC = () => {
       rootClassName="minapp-drawer"
       maskClassName="minapp-mask"
       height={isTopNavbar ? 'calc(100% - var(--navbar-height))' : '100%'}
-      width={isLeftNavbar ? 'calc(100vw - var(--sidebar-width))' : '100vw'}
       maskClosable={false}
       closeIcon={null}
       styles={{
         wrapper: {
           position: 'fixed',
-          left: isLeftNavbar ? 'var(--sidebar-width)' : 0,
-          right: 0,
-          backgroundColor: window.root.style.background,
-          boxSizing: 'border-box'
-        },
-        content: {
-          padding: 0,
-          margin: 0,
-          width: '100%',
-          height: '100%',
-          boxSizing: 'border-box'
-        },
-        body: {
-          padding: 0,
-          margin: 0,
-          width: '100%',
-          height: '100%',
-          boxSizing: 'border-box'
+          marginLeft: isLeftNavbar ? 'var(--sidebar-width)' : 0,
+          marginTop: isTopNavbar ? 'var(--navbar-height)' : 0,
+          backgroundColor: window.root.style.background
         }
       }}>
       {/* 在所有小程序中显示GoogleLoginTip */}
       <GoogleLoginTip isReady={isReady} currentUrl={currentUrl} currentAppId={currentMinappId} />
-
-      {/* 顶部导航栏模式下显示固定工具栏 */}
-      {isTopNavbar && currentAppInfo && isReady && <FixedToolbar appInfo={currentAppInfo} url={currentUrl} />}
-
       {!isReady && (
         <EmptyView>
           <Avatar
@@ -680,7 +602,7 @@ const ButtonsGroup = styled.div<{ isTopNavbar: boolean }>`
   gap: 5px;
   -webkit-app-region: no-drag;
   &.windows {
-    margin-right: ${({ isTopNavbar }) => (isTopNavbar ? 0 : isWin ? '130px' : isLinux ? '100px' : 0)};
+    margin-right: ${isWin ? '130px' : isLinux ? '100px' : 0};
     background-color: var(--color-background-mute);
     border-radius: 50px;
     padding: 0 3px;
@@ -728,52 +650,6 @@ const EmptyView = styled.div`
 
 const Spacer = styled.div`
   flex: 1;
-`
-
-const FixedToolbarContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0 15px;
-  height: 40px;
-  background-color: var(--color-background-soft);
-  border-bottom: 1px solid var(--color-border);
-  -webkit-app-region: no-drag;
-`
-
-const ToolbarButtonGroup = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5px;
-`
-
-const ToolbarButton = styled.div<{ disabled?: boolean }>`
-  cursor: ${({ disabled }) => (disabled ? 'default' : 'pointer')};
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  color: ${({ disabled }) => (disabled ? 'var(--color-text-3)' : 'var(--color-text-2)')};
-  transition: all 0.2s ease;
-  font-size: 13px;
-  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
-  &:hover {
-    color: ${({ disabled }) => (disabled ? 'var(--color-text-3)' : 'var(--color-text-1)')};
-    background-color: ${({ disabled }) => (disabled ? 'transparent' : 'var(--color-background-mute)')};
-  }
-`
-
-const ToolbarTitle = styled.div`
-  flex: 1;
-  text-align: center;
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--color-text-1);
-  margin: 0 10px;
 `
 
 export default MinappPopupContainer

@@ -589,16 +589,30 @@ const MinappPopupContainer: React.FC = () => {
       rootClassName="minapp-drawer"
       maskClassName="minapp-mask"
       height={isTopNavbar ? 'calc(100% - var(--navbar-height))' : '100%'}
-      width={'100%'}
+      width={isLeftNavbar ? 'calc(100vw - var(--sidebar-width))' : '100vw'}
       maskClosable={false}
       closeIcon={null}
       styles={{
         wrapper: {
-          marginLeft: isLeftNavbar ? 'var(--sidebar-width)' : 0,
-          backgroundColor: window.root.style.background
+          position: 'fixed',
+          left: isLeftNavbar ? 'var(--sidebar-width)' : 0,
+          right: 0,
+          backgroundColor: window.root.style.background,
+          boxSizing: 'border-box'
+        },
+        content: {
+          padding: 0,
+          margin: 0,
+          width: '100%',
+          height: '100%',
+          boxSizing: 'border-box'
         },
         body: {
-          marginTop: isTopNavbar ? 0 : 'var(--navbar-height)' // 覆盖 ant.css 中的 margin-top
+          padding: 0,
+          margin: 0,
+          width: '100%',
+          height: '100%',
+          boxSizing: 'border-box'
         }
       }}>
       {/* 在所有小程序中显示GoogleLoginTip */}

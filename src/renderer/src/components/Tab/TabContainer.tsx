@@ -252,7 +252,6 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
           </AddTabButton>
         </TabsArea>
         <RightButtonsContainer>
-          <TopNavbarOpenedMinappTabs />
           <Tooltip
             title={t('settings.theme.title') + ': ' + getThemeModeLabel(settedTheme)}
             mouseEnterDelay={0.8}

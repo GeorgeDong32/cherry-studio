@@ -86,7 +86,6 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
       setWebviewLoaded(app.id, false)
       setIsReady(false) // Set loading state when reloading
       webviewRef.current.src = app.url
-
     }
   }, [app.url, app.id])
 

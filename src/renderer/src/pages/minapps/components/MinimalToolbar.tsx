@@ -65,10 +65,6 @@ const MinimalToolbar: FC<Props> = ({ app, webviewRef, currentUrl, onReload, onOp
     }
   }, [webviewRef, updateNavigationState])
 
-  // const handleClose = useCallback(() => {
-  //   navigate('/apps')
-  // }, [navigate])
-
   const handleMinimize = useCallback(() => {
     navigate('/apps')
   }, [navigate])

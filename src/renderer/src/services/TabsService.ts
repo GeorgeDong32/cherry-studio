@@ -13,8 +13,12 @@ class TabsService {
   private minAppsCache: LRUCache<string, MinAppType> | null = null
 
   /**
-   * Set the mini-apps cache reference for cleanup operations
-   * @param cache LRU cache instance from useMinappPopup
+   * Sets the reference to the mini-apps LRU cache used for managing mini-app lifecycle and cleanup.
+   * This method is required to integrate TabsService with the mini-apps cache system, allowing TabsService
+   * to perform cache cleanup when tabs associated with mini-apps are closed. The cache instance is typically
+   * provided by the mini-app popup system and enables TabsService to maintain cache consistency and prevent
+   * stale data.
+   * @param cache The LRUCache instance containing mini-app data, provided by useMinappPopup.
    */
   public setMinAppsCache(cache: LRUCache<string, MinAppType>) {
     this.minAppsCache = cache

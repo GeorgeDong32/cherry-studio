@@ -41,12 +41,8 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
       logger.debug(`App ${app.id} not loaded before, showing loading state`)
       setIsReady(false)
 
-      // Commented out backup timer as requested - let loading animation show indefinitely if needed
-      // const timer = setTimeout(() => {
-      //   logger.debug('Backup timer: setting isReady to true for new WebView')
-      //   setIsReady(true)
-      // }, 3000)
-      // return () => clearTimeout(timer)
+      // Backup timer logic removed as requested—loading animation will show indefinitely if needed.
+      // (See version control history for previous implementation.)
     }
   }, [app])
 
@@ -91,11 +87,6 @@ const MinAppFullPageView: FC<Props> = ({ app }) => {
       setIsReady(false) // Set loading state when reloading
       webviewRef.current.src = app.url
 
-      // fallback timer in case did-finish-load doesn't fire (commented out as per request)
-      // setTimeout(() => {
-      //   logger.debug('Reload backup timer: setting isReady to true')
-      //   setIsReady(true)
-      // }, 4000)
     }
   }, [app.url, app.id])
 

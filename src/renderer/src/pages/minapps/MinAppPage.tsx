@@ -5,7 +5,7 @@ import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
 import TabsService from '@renderer/services/TabsService'
-import { FC, useEffect, useRef } from 'react'
+import { FC, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -40,7 +40,10 @@ const MinAppPage: FC = () => {
   }, [isTopNavbar])
 
   // Find the app from all available apps
-  const app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+  const app = useMemo(() => {
+    if (!appId) return null
+    return [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+  }, [appId, minapps])
 
   useEffect(() => {
     // If app not found, redirect to apps list

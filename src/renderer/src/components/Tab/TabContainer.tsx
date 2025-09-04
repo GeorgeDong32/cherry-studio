@@ -1,5 +1,4 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { TopNavbarOpenedMinappTabs } from '@renderer/components/app/PinnedMinapps'
 import { Sortable, useDndReorder } from '@renderer/components/dnd'
 import Scrollbar from '@renderer/components/Scrollbar'
 import { isLinux, isMac, isWin } from '@renderer/config/constant'

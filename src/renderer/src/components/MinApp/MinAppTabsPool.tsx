@@ -78,9 +78,19 @@ const MinAppTabsPool: React.FC = () => {
   }, [apps])
 
   // 不显示时直接 hidden，避免闪烁；仍然保留 DOM 做保活
+  const toolbarHeight = 35 // 与 MinimalToolbar 高度保持一致
+
   return (
     <PoolContainer
-      style={{ visibility: shouldShow ? 'visible' : 'hidden' }}
+      style={
+        shouldShow
+          ? {
+              visibility: 'visible',
+              top: toolbarHeight,
+              height: `calc(100% - ${toolbarHeight}px)`
+            }
+          : { visibility: 'hidden' }
+      }
       data-minapp-tabs-pool
       aria-hidden={!shouldShow}
     >
@@ -101,16 +111,16 @@ const MinAppTabsPool: React.FC = () => {
 
 const PoolContainer = styled.div`
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* top 在运行时通过 style 注入 (toolbarHeight) */
   width: 100%;
-  height: 100%;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   z-index: 1;
-  pointer-events: none; /* 不阻挡外层列表页面交互（隐藏时） */
-  & webview {
-    pointer-events: auto; /* 激活时恢复 webview 交互 */
-  }
+  pointer-events: none;
+  & webview { pointer-events: auto; }
 `
 
 const WebviewWrapper = styled.div<{ $active: boolean }>`

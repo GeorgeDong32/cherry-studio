@@ -92,8 +92,7 @@ const MinAppTabsPool: React.FC = () => {
           : { visibility: 'hidden' }
       }
       data-minapp-tabs-pool
-      aria-hidden={!shouldShow}
-    >
+      aria-hidden={!shouldShow}>
       {apps.map((app) => (
         <WebviewWrapper key={app.id} $active={app.id === currentMinappId}>
           <WebviewContainer
@@ -120,7 +119,9 @@ const PoolContainer = styled.div`
   border-radius: 0 0 8px 8px;
   z-index: 1;
   pointer-events: none;
-  & webview { pointer-events: auto; }
+  & webview {
+    pointer-events: auto;
+  }
 `
 
 const WebviewWrapper = styled.div<{ $active: boolean }>`

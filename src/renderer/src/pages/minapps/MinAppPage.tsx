@@ -135,7 +135,7 @@ const MinAppPage: FC = () => {
         <MinimalToolbar
           app={app}
           webviewRef={webviewRef}
-            // currentUrl 可能为 null（尚未捕获导航），外部打开时会 fallback 到 app.url
+          // currentUrl 可能为 null（尚未捕获导航），外部打开时会 fallback 到 app.url
           currentUrl={currentUrl}
           onReload={handleReload}
           onOpenDevTools={handleOpenDevTools}
@@ -158,7 +158,9 @@ const ShellContainer = styled.div`
   width: 100%;
   z-index: 3; /* 高于池中的 webview */
   pointer-events: none; /* 让下层 webview 默认可交互 */
-  > * { pointer-events: auto; }
+  > * {
+    pointer-events: auto;
+  }
 `
 
 const ToolbarWrapper = styled.div`

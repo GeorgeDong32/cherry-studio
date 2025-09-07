@@ -1,0 +1,125 @@
+import { loggerService } from '@logger'
+import WebviewContainer from '@renderer/components/MinApp/WebviewContainer'
+import { useRuntime } from '@renderer/hooks/useRuntime'
+import { useNavbarPosition } from '@renderer/hooks/useSettings'
+import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
+import { WebviewTag } from 'electron'
+import React, { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
+import styled from 'styled-components'
+
+/**
+ * Mini-app WebView pool for Tab 模式 (顶部导航).
+ *
+ * 与 Popup 模式相似，但独立存在：
+ *  - 仅在 isTopNavbar=true 且访问 /apps 路由时显示
+ *  - 保证已打开的 keep-alive 小程序对应的 <webview> 不被卸载，只通过 display 切换
+ *  - LRU 淘汰通过 openedKeepAliveMinapps 变化自动移除 DOM
+ *
+ * 后续可演进：与 Popup 共享同一实例（方案 B）。
+ */
+const logger = loggerService.withContext('MinAppTabsPool')
+
+const MinAppTabsPool: React.FC = () => {
+  const { openedKeepAliveMinapps, currentMinappId } = useRuntime()
+  const { isTopNavbar } = useNavbarPosition()
+  const location = useLocation()
+
+  // webview refs（池内部自用，用于控制显示/隐藏）
+  const webviewRefs = useRef<Map<string, WebviewTag | null>>(new Map())
+
+  // 仅在 /apps 相关路由下显示（例如 /apps 与 /apps/:id）
+  // 仅在访问具体小程序详情路由 (/apps/:id) 时显示池；/apps 列表页隐藏
+  const isAppDetail = /^\/apps\/.+/.test(location.pathname) && location.pathname.split('/').length >= 3
+  const shouldShow = isTopNavbar && isAppDetail
+
+  // 组合当前需要渲染的列表（保持顺序即可）
+  const apps = openedKeepAliveMinapps
+
+  /** 设置 ref 回调 */
+  const handleSetRef = (appid: string, el: WebviewTag | null) => {
+    if (el) {
+      webviewRefs.current.set(appid, el)
+    } else {
+      webviewRefs.current.delete(appid)
+    }
+  }
+
+  /** WebView 加载完成回调 */
+  const handleLoaded = (appid: string) => {
+    setWebviewLoaded(appid, true)
+    logger.debug(`TabPool webview loaded: ${appid}`)
+  }
+
+  /** 记录导航（暂未外曝 URL 状态，后续可接入全局 URL Map） */
+  const handleNavigate = (appid: string, url: string) => {
+    logger.debug(`TabPool webview navigate: ${appid} -> ${url}`)
+  }
+
+  /** 切换显示状态：仅当前 active 的显示，其余隐藏 */
+  useEffect(() => {
+    webviewRefs.current.forEach((ref, id) => {
+      if (!ref) return
+      const active = id === currentMinappId && shouldShow
+      ref.style.display = active ? 'inline-flex' : 'none'
+    })
+  }, [currentMinappId, shouldShow, apps.length])
+
+  /** 当某个已在 Map 里但不再属于 openedKeepAlive 时，移除引用（React 自身会卸载元素） */
+  useEffect(() => {
+    const existing = Array.from(webviewRefs.current.keys())
+    existing.forEach((id) => {
+      if (!apps.find((a) => a.id === id)) {
+        webviewRefs.current.delete(id)
+        // loaded 状态也清理（LRU 已在其它地方清除，双保险）
+        if (!getWebviewLoaded(id)) return
+      }
+    })
+  }, [apps])
+
+  // 不显示时直接 hidden，避免闪烁；仍然保留 DOM 做保活
+  return (
+    <PoolContainer
+      style={{ visibility: shouldShow ? 'visible' : 'hidden' }}
+      data-minapp-tabs-pool
+      aria-hidden={!shouldShow}
+    >
+      {apps.map((app) => (
+        <WebviewWrapper key={app.id} $active={app.id === currentMinappId}>
+          <WebviewContainer
+            appid={app.id}
+            url={app.url}
+            onSetRefCallback={handleSetRef}
+            onLoadedCallback={handleLoaded}
+            onNavigateCallback={handleNavigate}
+          />
+        </WebviewWrapper>
+      ))}
+    </PoolContainer>
+  )
+}
+
+const PoolContainer = styled.div`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  z-index: 1;
+  pointer-events: none; /* 不阻挡外层列表页面交互（隐藏时） */
+  & webview {
+    pointer-events: auto; /* 激活时恢复 webview 交互 */
+  }
+`
+
+const WebviewWrapper = styled.div<{ $active: boolean }>`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* display 控制在内部 webview 元素上做，这里保持结构稳定 */
+  pointer-events: ${(p) => (p.$active ? 'auto' : 'none')};
+`
+
+export default MinAppTabsPool

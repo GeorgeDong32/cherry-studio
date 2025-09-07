@@ -5,11 +5,16 @@ import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
 import TabsService from '@renderer/services/TabsService'
-import { FC, useEffect, useMemo, useRef } from 'react'
+import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
-import MinAppFullPageView from './components/MinAppFullPageView'
+// Tab 模式下新的页面壳，不再直接创建 WebView，而是依赖全局 MinAppTabsPool
+import MinimalToolbar from './components/MinimalToolbar'
+import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
+import { WebviewTag } from 'electron'
+import { Avatar } from 'antd'
+import BeatLoader from 'react-spinners/BeatLoader'
 
 const logger = loggerService.withContext('MinAppPage')
 
@@ -66,37 +71,110 @@ const MinAppPage: FC = () => {
 
     // For top navbar mode, integrate with cache system
     if (initialIsTopNavbar.current) {
-      // Check if app is already in the keep-alive cache
-      const isAlreadyInCache = openedKeepAliveMinapps.some((cachedApp) => cachedApp.id === app.id)
-
-      if (!isAlreadyInCache) {
-        logger.debug(`Adding app ${app.id} to keep-alive cache via openMinappKeepAlive`)
-        // Add to cache without showing popup (for tab mode)
-        openMinappKeepAlive(app)
-      } else {
-        logger.debug(`App ${app.id} already in keep-alive cache`)
-      }
+      // 无论是否已在缓存，都调用以确保 currentMinappId 同步到路由切换的新 appId
+      openMinappKeepAlive(app)
     }
-  }, [app, navigate, openMinappKeepAlive, openedKeepAliveMinapps, initialIsTopNavbar])
+  }, [app, navigate, openMinappKeepAlive, initialIsTopNavbar])
 
   // Don't render anything if app not found or not in top navbar mode initially
   if (!app || !initialIsTopNavbar.current) {
     return null
   }
 
+  // -------------- 新的 Tab Shell 逻辑 --------------
+  const webviewRef = useRef<WebviewTag | null>(null)
+  const [isReady, setIsReady] = useState<boolean>(() => getWebviewLoaded(app.id))
+  const [currentUrl, setCurrentUrl] = useState<string | null>(app.url)
+
+  // 获取池中的 webview 元素
+  useEffect(() => {
+    const el = document.querySelector(`webview[data-minapp-id="${app.id}"]`) as WebviewTag | null
+    if (!el) return
+    webviewRef.current = el
+    const handleInPageNav = (e: any) => setCurrentUrl(e.url)
+    el.addEventListener('did-navigate-in-page', handleInPageNav)
+    return () => {
+      el.removeEventListener('did-navigate-in-page', handleInPageNav)
+    }
+  }, [app.id, openedKeepAliveMinapps.length])
+
+  // 轮询等待加载完成（webviewStateManager 没有事件机制，先用轻量方式）
+  useEffect(() => {
+    if (isReady) return
+    let cancelled = false
+    const tick = () => {
+      if (cancelled) return
+      if (getWebviewLoaded(app.id)) {
+        setIsReady(true)
+        return
+      }
+      setTimeout(tick, 150)
+    }
+    tick()
+    return () => {
+      cancelled = true
+    }
+  }, [app.id, isReady])
+
+  const handleReload = () => {
+    if (webviewRef.current) {
+      setWebviewLoaded(app.id, false)
+      setIsReady(false)
+      webviewRef.current.src = app.url
+      setCurrentUrl(app.url)
+    }
+  }
+
+  const handleOpenDevTools = () => {
+    webviewRef.current?.openDevTools()
+  }
+
   return (
-    <Container>
-      <MinAppFullPageView app={app} />
-    </Container>
+    <ShellContainer>
+      <ToolbarWrapper>
+        <MinimalToolbar
+          app={app}
+          webviewRef={webviewRef}
+            // currentUrl 可能为 null（尚未捕获导航），外部打开时会 fallback 到 app.url
+          currentUrl={currentUrl}
+          onReload={handleReload}
+          onOpenDevTools={handleOpenDevTools}
+        />
+      </ToolbarWrapper>
+      {!isReady && (
+        <LoadingMask>
+          <Avatar src={app.logo} size={60} style={{ border: '1px solid var(--color-border)' }} />
+          <BeatLoader color="var(--color-text-2)" size={8} style={{ marginTop: 12 }} />
+        </LoadingMask>
+      )}
+    </ShellContainer>
   )
 }
-
-const Container = styled.div`
+const ShellContainer = styled.div`
+  position: relative;
   display: flex;
-  flex: 1;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  width: 100%;
+  z-index: 3; /* 高于池中的 webview */
+  pointer-events: none; /* 让下层 webview 默认可交互 */
+  > * { pointer-events: auto; }
+`
+
+const ToolbarWrapper = styled.div`
+  flex-shrink: 0;
+`
+
+const LoadingMask = styled.div`
+  position: absolute;
+  inset: 35px 0 0 0; /* 避开 toolbar 高度 */
+  display: flex;
+  flex-direction: column; /* 垂直堆叠 */
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+  z-index: 4;
+  gap: 12px;
 `
 
 export default MinAppPage

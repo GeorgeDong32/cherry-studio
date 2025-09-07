@@ -5,16 +5,16 @@ import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
 import TabsService from '@renderer/services/TabsService'
+import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
+import { Avatar } from 'antd'
+import { WebviewTag } from 'electron'
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import BeatLoader from 'react-spinners/BeatLoader'
 import styled from 'styled-components'
 
 // Tab 模式下新的页面壳，不再直接创建 WebView，而是依赖全局 MinAppTabsPool
 import MinimalToolbar from './components/MinimalToolbar'
-import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
-import { WebviewTag } from 'electron'
-import { Avatar } from 'antd'
-import BeatLoader from 'react-spinners/BeatLoader'
 
 const logger = loggerService.withContext('MinAppPage')
 
@@ -76,18 +76,15 @@ const MinAppPage: FC = () => {
     }
   }, [app, navigate, openMinappKeepAlive, initialIsTopNavbar])
 
-  // Don't render anything if app not found or not in top navbar mode initially
-  if (!app || !initialIsTopNavbar.current) {
-    return null
-  }
-
   // -------------- 新的 Tab Shell 逻辑 --------------
+  // 注意：Hooks 必须在任何 return 之前调用，因此提前定义，并在内部判空
   const webviewRef = useRef<WebviewTag | null>(null)
-  const [isReady, setIsReady] = useState<boolean>(() => getWebviewLoaded(app.id))
-  const [currentUrl, setCurrentUrl] = useState<string | null>(app.url)
+  const [isReady, setIsReady] = useState<boolean>(() => (app ? getWebviewLoaded(app.id) : false))
+  const [currentUrl, setCurrentUrl] = useState<string | null>(app?.url ?? null)
 
-  // 获取池中的 webview 元素
+  // 获取池中的 webview 元素（需在早期定义，避免早退前缺少 hook 调用）
   useEffect(() => {
+    if (!app) return
     const el = document.querySelector(`webview[data-minapp-id="${app.id}"]`) as WebviewTag | null
     if (!el) return
     webviewRef.current = el
@@ -96,10 +93,11 @@ const MinAppPage: FC = () => {
     return () => {
       el.removeEventListener('did-navigate-in-page', handleInPageNav)
     }
-  }, [app.id, openedKeepAliveMinapps.length])
+  }, [app, openedKeepAliveMinapps.length])
 
   // 轮询等待加载完成（webviewStateManager 没有事件机制，先用轻量方式）
   useEffect(() => {
+    if (!app) return
     if (isReady) return
     let cancelled = false
     const tick = () => {
@@ -114,9 +112,15 @@ const MinAppPage: FC = () => {
     return () => {
       cancelled = true
     }
-  }, [app.id, isReady])
+  }, [app, isReady])
+
+  // 如果条件不满足，提前返回（所有 hooks 已调用）
+  if (!app || !initialIsTopNavbar.current) {
+    return null
+  }
 
   const handleReload = () => {
+    if (!app) return
     if (webviewRef.current) {
       setWebviewLoaded(app.id, false)
       setIsReady(false)

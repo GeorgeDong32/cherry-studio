@@ -39,8 +39,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import MinAppIcon from '../Icons/MinAppIcon'
-import WindowControls from '../WindowControls'
 import MinAppTabsPool from '../MinApp/MinAppTabsPool'
+import WindowControls from '../WindowControls'
 
 interface TabsContainerProps {
   children: React.ReactNode

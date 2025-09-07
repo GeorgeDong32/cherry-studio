@@ -72,7 +72,9 @@ const MinAppTabsPool: React.FC = () => {
       if (!apps.find((a) => a.id === id)) {
         webviewRefs.current.delete(id)
         // loaded 状态也清理（LRU 已在其它地方清除，双保险）
-        if (!getWebviewLoaded(id)) return
+        if (getWebviewLoaded(id)) {
+          setWebviewLoaded(id, false)
+        }
       }
     })
   }, [apps])

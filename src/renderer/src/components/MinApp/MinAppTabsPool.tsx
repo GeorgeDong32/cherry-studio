@@ -130,7 +130,7 @@ const WebviewWrapper = styled.div<{ $active: boolean }>`
   width: 100%;
   height: 100%;
   /* display 控制在内部 webview 元素上做，这里保持结构稳定 */
-  pointer-events: ${(p) => (p.$active ? 'auto' : 'none')};
+  pointer-events: ${(props) => (props.$active ? 'auto' : 'none')};
 `
 
 export default MinAppTabsPool

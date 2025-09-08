@@ -28,9 +28,14 @@ const MinAppTabsPool: React.FC = () => {
   // webview refs（池内部自用，用于控制显示/隐藏）
   const webviewRefs = useRef<Map<string, WebviewTag | null>>(new Map())
 
-  // 仅在 /apps 相关路由下显示（例如 /apps 与 /apps/:id）
-  // 仅在访问具体小程序详情路由 (/apps/:id) 时显示池；/apps 列表页隐藏
-  const isAppDetail = /^\/apps\/.+/.test(location.pathname) && location.pathname.split('/').length >= 3
+  // 使用集中工具进行更稳健的路由判断
+  const isAppDetail = (() => {
+    const pathname = location.pathname
+    if (pathname === '/apps') return false
+    if (!pathname.startsWith('/apps/')) return false
+    const parts = pathname.split('/').filter(Boolean) // ['apps', '<id>', ...]
+    return parts.length >= 2
+  })()
   const shouldShow = isTopNavbar && isAppDetail
 
   // 组合当前需要渲染的列表（保持顺序即可）

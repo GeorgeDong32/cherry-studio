@@ -2,13 +2,12 @@ import { loggerService } from '@logger'
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
-import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition } from '@renderer/hooks/useSettings'
 import TabsService from '@renderer/services/TabsService'
-import { getWebviewLoaded, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
+import { getWebviewLoaded, onWebviewStateChange, setWebviewLoaded } from '@renderer/utils/webviewStateManager'
 import { Avatar } from 'antd'
 import { WebviewTag } from 'electron'
-import { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import BeatLoader from 'react-spinners/BeatLoader'
 import styled from 'styled-components'
@@ -23,7 +22,8 @@ const MinAppPage: FC = () => {
   const { isTopNavbar } = useNavbarPosition()
   const { openMinappKeepAlive, minAppsCache } = useMinappPopup()
   const { minapps } = useMinapps()
-  const { openedKeepAliveMinapps } = useRuntime()
+  // openedKeepAliveMinapps 不再需要作为依赖参与 webview 选择，已通过 MutationObserver 动态发现
+  // const { openedKeepAliveMinapps } = useRuntime()
   const navigate = useNavigate()
 
   // Remember the initial navbar position when component mounts
@@ -82,35 +82,65 @@ const MinAppPage: FC = () => {
   const [isReady, setIsReady] = useState<boolean>(() => (app ? getWebviewLoaded(app.id) : false))
   const [currentUrl, setCurrentUrl] = useState<string | null>(app?.url ?? null)
 
-  // 获取池中的 webview 元素（需在早期定义，避免早退前缺少 hook 调用）
-  useEffect(() => {
-    if (!app) return
-    const el = document.querySelector(`webview[data-minapp-id="${app.id}"]`) as WebviewTag | null
-    if (!el) return
+  // 获取池中的 webview 元素（避免因为 openedKeepAliveMinapps.length 变化而频繁重跑）
+  const webviewCleanupRef = useRef<(() => void) | null>(null)
+
+  const attachWebview = useCallback(() => {
+    if (!app) return true // 没有 app 不再继续监控
+    const selector = `webview[data-minapp-id="${app.id}"]`
+    const el = document.querySelector(selector) as WebviewTag | null
+    if (!el) return false
+
+    if (webviewRef.current === el) return true // 已附着
+
     webviewRef.current = el
     const handleInPageNav = (e: any) => setCurrentUrl(e.url)
     el.addEventListener('did-navigate-in-page', handleInPageNav)
-    return () => {
+    webviewCleanupRef.current = () => {
       el.removeEventListener('did-navigate-in-page', handleInPageNav)
     }
-  }, [app, openedKeepAliveMinapps.length])
+    return true
+  }, [app])
 
-  // 轮询等待加载完成（webviewStateManager 没有事件机制，先用轻量方式）
   useEffect(() => {
     if (!app) return
-    if (isReady) return
-    let cancelled = false
-    const tick = () => {
-      if (cancelled) return
-      if (getWebviewLoaded(app.id)) {
-        setIsReady(true)
-        return
+
+    // 先尝试立即附着
+    if (attachWebview()) return () => webviewCleanupRef.current?.()
+
+    // 若尚未创建，对 DOM 变更做一次监听（轻量 + 自动断开）
+    const observer = new MutationObserver(() => {
+      if (attachWebview()) {
+        observer.disconnect()
       }
-      setTimeout(tick, 150)
-    }
-    tick()
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+
     return () => {
-      cancelled = true
+      observer.disconnect()
+      webviewCleanupRef.current?.()
+    }
+  }, [app, attachWebview])
+
+  // 事件驱动等待加载完成（移除固定 150ms 轮询）
+  useEffect(() => {
+    if (!app) return
+    if (getWebviewLoaded(app.id)) {
+      // 已经加载
+      if (!isReady) setIsReady(true)
+      return
+    }
+    let mounted = true
+    const unsubscribe = onWebviewStateChange(app.id, (loaded) => {
+      if (!mounted) return
+      if (loaded) {
+        setIsReady(true)
+        unsubscribe()
+      }
+    })
+    return () => {
+      mounted = false
+      unsubscribe()
     }
   }, [app, isReady])
 

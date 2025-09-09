@@ -543,6 +543,9 @@ const MinappPopupContainer: React.FC = () => {
         },
         content: {
           backgroundColor: window.root.style.background
+        },
+        body: {
+          borderTopLeftRadius: '10px'
         }
       }}>
       {/* 在所有小程序中显示GoogleLoginTip */}

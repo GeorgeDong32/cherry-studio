@@ -283,13 +283,6 @@ const MinappPopupContainer: React.FC = () => {
 
   /** the callback function to set the webviews ref */
   const handleWebviewSetRef = (appid: string, element: WebviewTag | null) => {
-    webviewRefs.current.set(appid, element)
-
-    if (!webviewRefs.current.has(appid)) {
-      webviewRefs.current.set(appid, null)
-      return
-    }
-
     if (element) {
       webviewRefs.current.set(appid, element)
     } else {
@@ -401,10 +394,10 @@ const MinappPopupContainer: React.FC = () => {
       navigator.clipboard
         .writeText(url)
         .then(() => {
-          window.message.success('URL ' + t('message.copy.success'))
+          window.toast.addToast({ title: 'URL ' + t('message.copy.success') })
         })
         .catch(() => {
-          window.message.error('URL ' + t('message.copy.failed'))
+          window.toast.addToast({ title: 'URL ' + t('message.copy.failed') })
         })
     }
 

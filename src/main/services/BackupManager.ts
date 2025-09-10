@@ -262,6 +262,9 @@ class BackupManager {
 
       logger.debug(`BackupManager IPC, skipBackupFile: ${skipBackupFile}`)
 
+      // 初始化进度跟踪变量
+      let lastProgress = 20
+
       if (!skipBackupFile) {
         // 复制 Data 目录到临时目录
         const sourcePath = path.join(app.getPath('userData'), 'Data')
@@ -279,7 +282,8 @@ class BackupManager {
         })
 
         await this.setWritableRecursive(tempDataDir)
-        onProgress({ stage: 'preparing_compression', progress: 50, total: 100 })
+        lastProgress = 50
+        onProgress({ stage: 'preparing_compression', progress: lastProgress, total: 100 })
 
         // 附加：如果笔记目录在 Data 目录之外，则备份外部笔记目录
         try {
@@ -323,7 +327,6 @@ class BackupManager {
         zip64: true // 启用 ZIP64 支持以处理大文件
       })
 
-      let lastProgress = 50
       let totalEntries = 0
       let processedEntries = 0
       let totalBytes = 0
@@ -455,8 +458,19 @@ class BackupManager {
         const totalSize = await this.getDirSize(sourcePath)
         let copiedSize = 0
 
-        await this.setWritableRecursive(destPath)
-        await fs.remove(destPath)
+        // 检查目标目录是否存在，如果存在则先创建备份
+        if (await fs.pathExists(destPath)) {
+          const destFiles = await fs.readdir(destPath).catch(() => [])
+          if (destFiles.length > 0) {
+            const backupPath = `${destPath}_backup_${Date.now()}`
+            logger.info(`Creating backup of existing Data directory at: ${backupPath}`)
+            await fs.copy(destPath, backupPath)
+          }
+          await this.setWritableRecursive(destPath)
+          await fs.emptyDir(destPath)
+        } else {
+          await fs.ensureDir(destPath)
+        }
 
         // 使用流式复制
         await this.copyDirWithProgress(sourcePath, destPath, (size) => {
@@ -464,6 +478,7 @@ class BackupManager {
           const progress = Math.min(85, 35 + Math.floor((copiedSize / totalSize) * 50))
           onProgress({ stage: 'copying_files', progress, total: 100 })
         })
+        logger.info(`Successfully restored Data directory to: ${destPath}`)
       } else {
         logger.debug('skipBackupFile is true, skip restoring Data directory')
       }
@@ -497,22 +512,43 @@ class BackupManager {
           // 若未能解析出路径，则跳过外部笔记恢复
           if (notesPath) {
             const targetNotesPath = notesPath
+            logger.debug(`Restoring external notes to: ${targetNotesPath}`)
 
             // 计算大小并合并复制
             const totalSize = await this.getDirSize(externalNotesTemp)
             let copiedSize = 0
+
+            // 确保目标目录存在，但不要删除现有内容
             await fs.ensureDir(targetNotesPath)
-            await this.setWritableRecursive(targetNotesPath)
+
+            // 检查目标目录是否已存在内容，如果存在则创建备份
+            const targetExists = await fs.pathExists(targetNotesPath)
+            const targetFiles = targetExists ? await fs.readdir(targetNotesPath) : []
+
+            if (targetFiles.length > 0) {
+              const backupDir = `${targetNotesPath}_backup_${Date.now()}`
+              logger.info(`Target notes directory not empty, creating backup at: ${backupDir}`)
+              await fs.copy(targetNotesPath, backupDir)
+              await this.setWritableRecursive(targetNotesPath)
+              await fs.emptyDir(targetNotesPath)
+            }
 
             await this.copyDirWithProgress(externalNotesTemp, targetNotesPath, (size) => {
               copiedSize += size
               const progress = Math.min(95, 85 + Math.floor((copiedSize / Math.max(1, totalSize)) * 10))
               onProgress({ stage: 'restoring_external_notes', progress, total: 100 })
             })
+
+            logger.info(`Successfully restored external notes to: ${targetNotesPath}`)
+          } else {
+            logger.warn('[BackupManager] No external notes path found in backup data')
           }
+        } else {
+          logger.debug('[BackupManager] No external notes directory found in backup')
         }
       } catch (err) {
-        logger.warn('[BackupManager] Skip restoring external notes:', err as Error)
+        logger.error('[BackupManager] Failed to restore external notes:', err as Error)
+        // 不要阻止整个恢复过程
       }
 
       logger.debug('step 4: clean up temp directory')

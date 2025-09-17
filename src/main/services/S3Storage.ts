@@ -58,7 +58,7 @@ export default class S3Storage {
     })()
 
     this.client = new S3Client({
-      region,
+      ...(region && { region }), // Only include region if it's not empty
       endpoint: endpoint || undefined,
       credentials: {
         accessKeyId: accessKeyId,

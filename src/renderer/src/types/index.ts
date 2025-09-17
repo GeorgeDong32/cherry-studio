@@ -1009,7 +1009,7 @@ export function isServiceTier(tier: string): tier is ServiceTier {
 
 export type S3Config = {
   endpoint: string
-  region: string
+  region?: string // Some S3-compatible storage services don't require region
   bucket: string
   accessKeyId: string
   secretAccessKey: string

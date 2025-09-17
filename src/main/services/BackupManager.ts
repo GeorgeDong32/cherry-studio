@@ -28,7 +28,7 @@ class BackupManager {
   // 缓存核心连接配置，用于检测连接配置是否变更
   private cachedS3ConnectionConfig: {
     endpoint: string
-    region: string
+    region?: string
     bucket: string
     accessKeyId: string
     secretAccessKey: string

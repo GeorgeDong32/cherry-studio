@@ -3104,8 +3104,6 @@ export function getOpenAIWebSearchParams(model: Model, isEnableWebSearch?: boole
   return {
     tools: webSearchTools
   }
-
-  return {}
 }
 
 export function isGemmaModel(model?: Model): boolean {

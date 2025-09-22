@@ -1,6 +1,7 @@
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings' // 使用设置中的值
+import NavigationService from '@renderer/services/NavigationService'
 import TabsService from '@renderer/services/TabsService'
 import { useAppDispatch } from '@renderer/store'
 import {
@@ -13,7 +14,6 @@ import { MinAppType } from '@renderer/types'
 import { clearWebviewState } from '@renderer/utils/webviewStateManager'
 import { LRUCache } from 'lru-cache'
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import { useNavbarPosition } from './useSettings'
 
@@ -38,7 +38,6 @@ export const useMinappPopup = () => {
   const { openedKeepAliveMinapps, openedOneOffMinapp, minappShow } = useRuntime()
   const { maxKeepAliveMinapps } = useSettings() // 使用设置中的值
   const { isTopNavbar } = useNavbarPosition()
-  const navigate = useNavigate()
 
   const createLRUCache = useCallback(() => {
     return new LRUCache<string, MinAppType>({
@@ -185,14 +184,16 @@ export const useMinappPopup = () => {
         dispatch(setCurrentMinappId(config.id))
         dispatch(setMinappShow(true))
 
-        // Then navigate to the app tab
-        navigate(`/apps/${config.id}`)
+        // Then navigate to the app tab using NavigationService
+        if (NavigationService.navigate) {
+          NavigationService.navigate(`/apps/${config.id}`)
+        }
       } else {
         // For side navbar, use the traditional popup system
         openMinapp(config, keepAlive)
       }
     },
-    [isTopNavbar, navigate, openMinapp, dispatch]
+    [isTopNavbar, openMinapp, dispatch]
   )
 
   return {

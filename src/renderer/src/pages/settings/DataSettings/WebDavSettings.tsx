@@ -8,6 +8,7 @@ import { useSettings } from '@renderer/hooks/useSettings'
 import { startAutoSync, stopAutoSync } from '@renderer/services/BackupService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
+  setBackupNotes as _setBackupNotes,
   setWebdavAutoSync,
   setWebdavDisableStream as _setWebdavDisableStream,
   setWebdavHost as _setWebdavHost,
@@ -34,7 +35,8 @@ const WebDavSettings: FC = () => {
     webdavSyncInterval: webDAVSyncInterval,
     webdavMaxBackups: webDAVMaxBackups,
     webdavSkipBackupFile: webdDAVSkipBackupFile,
-    webdavDisableStream: webDAVDisableStream
+    webdavDisableStream: webDAVDisableStream,
+    backupNotes: backupNotesSetting
   } = useSettings()
 
   const [webdavHost, setWebdavHost] = useState<string | undefined>(webDAVHost)
@@ -43,6 +45,7 @@ const WebDavSettings: FC = () => {
   const [webdavPath, setWebdavPath] = useState<string | undefined>(webDAVPath)
   const [webdavSkipBackupFile, setWebdavSkipBackupFile] = useState<boolean>(webdDAVSkipBackupFile)
   const [webdavDisableStream, setWebdavDisableStream] = useState<boolean>(webDAVDisableStream)
+  const [backupNotes, setBackupNotes] = useState<boolean>(backupNotesSetting)
   const [backupManagerVisible, setBackupManagerVisible] = useState(false)
 
   const [syncInterval, setSyncInterval] = useState<number>(webDAVSyncInterval)
@@ -82,6 +85,11 @@ const WebDavSettings: FC = () => {
   const onDisableStreamChange = (value: boolean) => {
     setWebdavDisableStream(value)
     dispatch(_setWebdavDisableStream(value))
+  }
+
+  const onBackupNotesChange = (value: boolean) => {
+    setBackupNotes(value)
+    dispatch(_setBackupNotes(value))
   }
 
   const renderSyncStatus = () => {
@@ -227,6 +235,14 @@ const WebDavSettings: FC = () => {
       </SettingRow>
       <SettingRow>
         <SettingHelpText>{t('settings.data.backup.skip_file_data_help')}</SettingHelpText>
+      </SettingRow>
+      <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.data.backup.backup_notes_title')}</SettingRowTitle>
+        <Switch checked={backupNotes} onChange={onBackupNotesChange} />
+      </SettingRow>
+      <SettingRow>
+        <SettingHelpText>{t('settings.data.backup.backup_notes_help')}</SettingHelpText>
       </SettingRow>
       <SettingDivider />
       <SettingRow>

@@ -18,6 +18,9 @@ import { windowService } from './WindowService'
 
 const logger = loggerService.withContext('BackupManager')
 
+// Temporary storage for restore options
+let restoreNotesOption = true
+
 class BackupManager {
   private tempDir = path.join(app.getPath('temp'), 'cherry-studio', 'backup', 'temp')
   private backupDir = path.join(app.getPath('temp'), 'cherry-studio', 'backup')
@@ -60,6 +63,77 @@ class BackupManager {
     this.listS3Files = this.listS3Files.bind(this)
     this.deleteS3File = this.deleteS3File.bind(this)
     this.checkS3Connection = this.checkS3Connection.bind(this)
+    this.setRestoreNotesOption = this.setRestoreNotesOption.bind(this)
+  }
+
+  setRestoreNotesOption(restoreNotes: boolean): void {
+    restoreNotesOption = restoreNotes
+  }
+
+  // 从备份的数据字符串中提取 backupNotes 设置
+  private extractBackupNotesFromBackupData(backupData: string): boolean {
+    try {
+      const data = JSON.parse(backupData)
+      const persistString = data?.localStorage?.['persist:cherry-studio']
+      if (!persistString) return true // 默认开启
+
+      let persist: any = persistString
+      if (typeof persist === 'string') {
+        try {
+          persist = JSON.parse(persistString)
+        } catch {
+          return true
+        }
+      }
+
+      let settingsSlice: any = persist?.settings
+      if (!settingsSlice) return true
+      if (typeof settingsSlice === 'string') {
+        try {
+          settingsSlice = JSON.parse(settingsSlice)
+        } catch {
+          return true
+        }
+      }
+
+      const backupNotes = settingsSlice?.backupNotes
+      return typeof backupNotes === 'boolean' ? backupNotes : true
+    } catch (e) {
+      return true // 默认开启
+    }
+  }
+
+  // 获取当前的笔记路径（从当前正在恢复的数据中）
+  private getCurrentNotesPath(backupData: string): string | null {
+    try {
+      const data = JSON.parse(backupData)
+      const persistString = data?.localStorage?.['persist:cherry-studio']
+      if (!persistString) return getNotesDir() // 使用默认路径
+
+      let persist: any = persistString
+      if (typeof persist === 'string') {
+        try {
+          persist = JSON.parse(persistString)
+        } catch {
+          return getNotesDir()
+        }
+      }
+
+      let noteSlice: any = persist?.note
+      if (!noteSlice) return getNotesDir()
+      if (typeof noteSlice === 'string') {
+        try {
+          noteSlice = JSON.parse(noteSlice)
+        } catch {
+          return getNotesDir()
+        }
+      }
+
+      const notesPath = noteSlice?.notesPath
+      return typeof notesPath === 'string' && notesPath ? notesPath : getNotesDir()
+    } catch (e) {
+      return getNotesDir() // 返回默认路径
+    }
   }
 
   // 从备份的数据字符串中提取 notesPath（支持 redux-persist 的双层 JSON 结构）
@@ -133,7 +207,7 @@ class BackupManager {
 
       // 双重保险：使用文件属性命令（Windows专用）
       if (process.platform === 'win32') {
-        await exec(`attrib -R "${targetPath}" /L /D`)
+        exec(`attrib -R "${targetPath}" /L /D`, () => {}) // 忽略结果，异步执行
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {

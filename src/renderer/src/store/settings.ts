@@ -109,6 +109,7 @@ export interface SettingsState {
   messageNavigation: 'none' | 'buttons' | 'anchor'
   // 数据目录设置
   skipBackupFile: boolean
+  backupNotes: boolean
   // webdav 配置 host, user, pass, path
   webdavHost: string
   webdavUser: string
@@ -296,6 +297,7 @@ export const initialState: SettingsState = {
   gridPopoverTrigger: 'click',
   messageNavigation: 'none',
   skipBackupFile: false,
+  backupNotes: true,
   webdavHost: '',
   webdavUser: '',
   webdavPass: '',
@@ -527,6 +529,9 @@ const settingsSlice = createSlice({
     },
     setSkipBackupFile: (state, action: PayloadAction<boolean>) => {
       state.skipBackupFile = action.payload
+    },
+    setBackupNotes: (state, action: PayloadAction<boolean>) => {
+      state.backupNotes = action.payload
     },
     setWebdavHost: (state, action: PayloadAction<string>) => {
       state.webdavHost = action.payload
@@ -893,6 +898,7 @@ export const {
   setRenderInputMessageAsMarkdown,
   setClickAssistantToShowTopic,
   setSkipBackupFile,
+  setBackupNotes,
   setWebdavHost,
   setWebdavUser,
   setWebdavPass,

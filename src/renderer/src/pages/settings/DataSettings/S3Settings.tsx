@@ -8,7 +8,7 @@ import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { startAutoSync, stopAutoSync } from '@renderer/services/BackupService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
-import { setS3Partial } from '@renderer/store/settings'
+import { setBackupNotes as _setBackupNotes, setS3Partial } from '@renderer/store/settings'
 import { S3Config } from '@renderer/types'
 import { Button, Input, Switch, Tooltip } from 'antd'
 import dayjs from 'dayjs'
@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { SettingDivider, SettingGroup, SettingHelpText, SettingRow, SettingRowTitle, SettingTitle } from '..'
 
 const S3Settings: FC = () => {
-  const { s3 = {} as S3Config } = useSettings()
+  const { s3 = {} as S3Config, backupNotes: backupNotesSetting } = useSettings()
 
   const {
     endpoint: s3EndpointInit = '',
@@ -39,6 +39,7 @@ const S3Settings: FC = () => {
   const [secretAccessKey, setSecretAccessKey] = useState<string | undefined>(s3SecretAccessKeyInit)
   const [root, setRoot] = useState<string | undefined>(s3RootInit)
   const [skipBackupFile, setSkipBackupFile] = useState<boolean>(s3SkipBackupFileInit)
+  const [backupNotes, setBackupNotes] = useState<boolean>(backupNotesSetting)
   const [backupManagerVisible, setBackupManagerVisible] = useState(false)
 
   const [syncInterval, setSyncInterval] = useState<number>(s3SyncIntervalInit)
@@ -77,6 +78,11 @@ const S3Settings: FC = () => {
   const onSkipBackupFilesChange = (value: boolean) => {
     setSkipBackupFile(value)
     dispatch(setS3Partial({ skipBackupFile: value }))
+  }
+
+  const onBackupNotesChange = (value: boolean) => {
+    setBackupNotes(value)
+    dispatch(_setBackupNotes(value))
   }
 
   const renderSyncStatus = () => {
@@ -257,6 +263,14 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingRow>
         <SettingHelpText>{t('settings.data.s3.skipBackupFile.help')}</SettingHelpText>
+      </SettingRow>
+      <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.data.backup.backup_notes_title')}</SettingRowTitle>
+        <Switch checked={backupNotes} onChange={onBackupNotesChange} />
+      </SettingRow>
+      <SettingRow>
+        <SettingHelpText>{t('settings.data.backup.backup_notes_help')}</SettingHelpText>
       </SettingRow>
       {syncInterval > 0 && (
         <>

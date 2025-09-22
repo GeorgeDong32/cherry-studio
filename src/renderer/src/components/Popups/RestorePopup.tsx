@@ -1,7 +1,7 @@
 import { getRestoreProgressLabel } from '@renderer/i18n/label'
 import { restore } from '@renderer/services/BackupService'
 import { IpcChannel } from '@shared/IpcChannel'
-import { Modal, Progress } from 'antd'
+import { Checkbox, Modal, Progress } from 'antd'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -20,6 +20,7 @@ interface ProgressData {
 const PopupContainer: React.FC<Props> = ({ resolve }) => {
   const [open, setOpen] = useState(true)
   const [progressData, setProgressData] = useState<ProgressData>()
+  const [restoreNotes, setRestoreNotes] = useState(true)
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
   }, [])
 
   const onOk = async () => {
+    await window.api.backup.setRestoreNotesOption(restoreNotes)
     await restore()
     setOpen(false)
   }

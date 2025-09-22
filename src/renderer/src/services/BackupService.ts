@@ -894,7 +894,7 @@ async function restoreDatabase(backup: Record<string, any>) {
 }
 
 async function clearDatabase() {
-  const storeNames = await db.tables.map((table) => table.name)
+  const storeNames = db.tables.map((table) => table.name)
 
   await db.transaction('rw', db.tables, async () => {
     for (const storeName of storeNames) {

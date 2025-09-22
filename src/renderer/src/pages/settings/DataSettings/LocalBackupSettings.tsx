@@ -9,6 +9,7 @@ import { useSettings } from '@renderer/hooks/useSettings'
 import { startAutoSync, stopAutoSync } from '@renderer/services/BackupService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
+  setBackupNotes as _setBackupNotes,
   setLocalBackupAutoSync,
   setLocalBackupDir as _setLocalBackupDir,
   setLocalBackupMaxBackups as _setLocalBackupMaxBackups,
@@ -32,12 +33,14 @@ const LocalBackupSettings: React.FC = () => {
     localBackupDir: localBackupDirSetting,
     localBackupSyncInterval: localBackupSyncIntervalSetting,
     localBackupMaxBackups: localBackupMaxBackupsSetting,
-    localBackupSkipBackupFile: localBackupSkipBackupFileSetting
+    localBackupSkipBackupFile: localBackupSkipBackupFileSetting,
+    backupNotes: backupNotesSetting
   } = useSettings()
 
   const [localBackupDir, setLocalBackupDir] = useState<string | undefined>(localBackupDirSetting)
   const [resolvedLocalBackupDir, setResolvedLocalBackupDir] = useState<string | undefined>(undefined)
   const [localBackupSkipBackupFile, setLocalBackupSkipBackupFile] = useState<boolean>(localBackupSkipBackupFileSetting)
+  const [backupNotes, setBackupNotes] = useState<boolean>(backupNotesSetting)
   const [backupManagerVisible, setBackupManagerVisible] = useState(false)
 
   const [syncInterval, setSyncInterval] = useState<number>(localBackupSyncIntervalSetting)
@@ -138,6 +141,11 @@ const LocalBackupSettings: React.FC = () => {
   const onSkipBackupFilesChange = (value: boolean) => {
     setLocalBackupSkipBackupFile(value)
     dispatch(_setLocalBackupSkipBackupFile(value))
+  }
+
+  const onBackupNotesChange = (value: boolean) => {
+    setBackupNotes(value)
+    dispatch(_setBackupNotes(value))
   }
 
   const handleBrowseDirectory = async () => {
@@ -281,6 +289,14 @@ const LocalBackupSettings: React.FC = () => {
       </SettingRow>
       <SettingRow>
         <SettingHelpText>{t('settings.data.backup.skip_file_data_help')}</SettingHelpText>
+      </SettingRow>
+      <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.data.backup.backup_notes_title')}</SettingRowTitle>
+        <Switch checked={backupNotes} onChange={onBackupNotesChange} />
+      </SettingRow>
+      <SettingRow>
+        <SettingHelpText>{t('settings.data.backup.backup_notes_help')}</SettingHelpText>
       </SettingRow>
       {localBackupSync && syncInterval > 0 && (
         <>

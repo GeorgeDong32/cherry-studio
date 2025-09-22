@@ -440,6 +440,9 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   // backup
   ipcMain.handle(IpcChannel.Backup_Backup, backupManager.backup.bind(backupManager))
   ipcMain.handle(IpcChannel.Backup_Restore, backupManager.restore.bind(backupManager))
+  ipcMain.handle(IpcChannel.Backup_SetRestoreNotesOption, (_e, restoreNotes: boolean) =>
+    backupManager.setRestoreNotesOption(restoreNotes)
+  )
   ipcMain.handle(IpcChannel.Backup_BackupToWebdav, backupManager.backupToWebdav.bind(backupManager))
   ipcMain.handle(IpcChannel.Backup_RestoreFromWebdav, backupManager.restoreFromWebdav.bind(backupManager))
   ipcMain.handle(IpcChannel.Backup_ListWebdavFiles, backupManager.listWebdavFiles.bind(backupManager))

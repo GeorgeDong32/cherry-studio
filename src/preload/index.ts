@@ -108,6 +108,8 @@ const api = {
     backup: (filename: string, content: string, path: string, skipBackupFile: boolean) =>
       ipcRenderer.invoke(IpcChannel.Backup_Backup, filename, content, path, skipBackupFile),
     restore: (path: string) => ipcRenderer.invoke(IpcChannel.Backup_Restore, path),
+    setRestoreNotesOption: (restoreNotes: boolean) =>
+      ipcRenderer.invoke(IpcChannel.Backup_SetRestoreNotesOption, restoreNotes),
     backupToWebdav: (data: string, webdavConfig: WebDavConfig) =>
       ipcRenderer.invoke(IpcChannel.Backup_BackupToWebdav, data, webdavConfig),
     restoreFromWebdav: (webdavConfig: WebDavConfig) =>

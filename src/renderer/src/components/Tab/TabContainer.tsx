@@ -45,11 +45,17 @@ interface TabsContainerProps {
   children: React.ReactNode
 }
 
-const getTabIcon = (tabId: string, minapps: any[]): React.ReactNode | undefined => {
+const getTabIcon = (tabId: string, minapps: any[], minAppsCache?: any): React.ReactNode | undefined => {
   // Check if it's a minapp tab (format: apps:appId)
   if (tabId.startsWith('apps:')) {
     const appId = tabId.replace('apps:', '')
-    const app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+    let app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+
+    // If not found in default/custom apps, try cache (for temporary apps)
+    if (!app && minAppsCache) {
+      app = minAppsCache.get(appId)
+    }
+
     if (app) {
       return <MinAppIcon size={14} app={app} />
     }
@@ -94,7 +100,7 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
   const activeTabId = useAppSelector((state) => state.tabs.activeTabId)
   const isFullscreen = useFullscreen()
   const { settedTheme, toggleTheme } = useTheme()
-  const { hideMinappPopup } = useMinappPopup()
+  const { hideMinappPopup, minAppsCache } = useMinappPopup()
   const { minapps } = useMinapps()
   const { t } = useTranslation()
 
@@ -112,7 +118,13 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
     // Check if it's a minapp tab
     if (tabId.startsWith('apps:')) {
       const appId = tabId.replace('apps:', '')
-      const app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+      let app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
+
+      // If not found in default/custom apps, try cache (for temporary apps)
+      if (!app && minAppsCache) {
+        app = minAppsCache.get(appId)
+      }
+
       return app ? app.name : 'MinApp'
     }
     return getTitleLabel(tabId)
@@ -196,7 +208,7 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
             renderItem={(tab) => (
               <Tab key={tab.id} active={tab.id === activeTabId} onClick={() => handleTabClick(tab)}>
                 <TabHeader>
-                  {tab.id && <TabIcon>{getTabIcon(tab.id, minapps)}</TabIcon>}
+                  {tab.id && <TabIcon>{getTabIcon(tab.id, minapps, minAppsCache)}</TabIcon>}
                   <TabTitle>{getTabTitle(tab.id)}</TabTitle>
                 </TabHeader>
                 {tab.id !== 'home' && (

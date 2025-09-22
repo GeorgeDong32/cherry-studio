@@ -13,6 +13,9 @@ import { MinAppType } from '@renderer/types'
 import { clearWebviewState } from '@renderer/utils/webviewStateManager'
 import { LRUCache } from 'lru-cache'
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { useNavbarPosition } from './useSettings'
 
 let minAppsCache: LRUCache<string, MinAppType>
 
@@ -34,6 +37,8 @@ export const useMinappPopup = () => {
   const dispatch = useAppDispatch()
   const { openedKeepAliveMinapps, openedOneOffMinapp, minappShow } = useRuntime()
   const { maxKeepAliveMinapps } = useSettings() // 使用设置中的值
+  const { isTopNavbar } = useNavbarPosition()
+  const navigate = useNavigate()
 
   const createLRUCache = useCallback(() => {
     return new LRUCache<string, MinAppType>({
@@ -165,6 +170,31 @@ export const useMinappPopup = () => {
     dispatch(setMinappShow(false))
   }, [dispatch, minappShow, openedOneOffMinapp])
 
+  /** Smart open minapp that adapts to navbar position */
+  const openSmartMinapp = useCallback(
+    (config: MinAppType, keepAlive: boolean = false) => {
+      if (isTopNavbar) {
+        // For top navbar mode, need to add to cache first for temporary apps
+        const cacheApp = minAppsCache.get(config.id)
+        if (!cacheApp) {
+          // Add temporary app to cache so MinAppPage can find it
+          minAppsCache.set(config.id, config)
+        }
+
+        // Set current minapp and show state
+        dispatch(setCurrentMinappId(config.id))
+        dispatch(setMinappShow(true))
+
+        // Then navigate to the app tab
+        navigate(`/apps/${config.id}`)
+      } else {
+        // For side navbar, use the traditional popup system
+        openMinapp(config, keepAlive)
+      }
+    },
+    [isTopNavbar, navigate, openMinapp, dispatch]
+  )
+
   return {
     openMinapp,
     openMinappKeepAlive,
@@ -172,6 +202,7 @@ export const useMinappPopup = () => {
     closeMinapp,
     hideMinappPopup,
     closeAllMinapps,
+    openSmartMinapp,
     // Expose cache instance for TabsService integration
     minAppsCache
   }

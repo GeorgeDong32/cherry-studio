@@ -75,7 +75,15 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
       maskClosable={false}
       transitionName="animation-move-down"
       centered>
-      {!progressData && <div>{t('restore.content')}</div>}
+      {!progressData && (
+        <div>
+          <div style={{ marginBottom: 16 }}>{t('restore.content')}</div>
+          <Checkbox checked={restoreNotes} onChange={(e) => setRestoreNotes(e.target.checked)}>
+            {t('restore.notes.checkbox')}
+          </Checkbox>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>{t('restore.notes.help')}</div>
+        </div>
+      )}
       {progressData && (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <Progress percent={Math.floor(progressData.progress)} strokeColor="var(--color-primary)" />

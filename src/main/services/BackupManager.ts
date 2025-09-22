@@ -359,32 +359,35 @@ class BackupManager {
         lastProgress = 50
         onProgress({ stage: 'preparing_compression', progress: lastProgress, total: 100 })
 
-        // 附加：如果笔记目录在 Data 目录之外，则备份外部笔记目录
-        try {
-          const defaultNotesDir = getNotesDir()
-          const externalNotesPath = this.extractNotesPathFromBackupData(data)
-          if (
-            externalNotesPath &&
-            externalNotesPath !== defaultNotesDir &&
-            !isPathInside(externalNotesPath, getDataPath())
-          ) {
-            const tempExternalNotesDir = path.join(this.tempDir, 'ExternalNotes')
-            // 统计外部目录大小用于进度估算（保持进度不超过 60）
-            const extTotalSize = await this.getDirSize(externalNotesPath).catch(() => 0)
-            let extCopied = 0
-            await this.copyDirWithProgress(externalNotesPath, tempExternalNotesDir, (size) => {
-              if (extTotalSize > 0) {
-                extCopied += size
-                const progress = Math.min(60, 50 + Math.floor((extCopied / Math.max(1, extTotalSize)) * 10))
-                if (progress > lastProgress) {
-                  lastProgress = progress
-                  onProgress({ stage: 'copying_external_notes', progress, total: 100 })
+        // 附加：如果笔记目录在 Data 目录之外，且开启了笔记备份，则备份外部笔记目录
+        const backupNotes = this.extractBackupNotesFromBackupData(data)
+        if (backupNotes) {
+          try {
+            const defaultNotesDir = getNotesDir()
+            const externalNotesPath = this.extractNotesPathFromBackupData(data)
+            if (
+              externalNotesPath &&
+              externalNotesPath !== defaultNotesDir &&
+              !isPathInside(externalNotesPath, getDataPath())
+            ) {
+              const tempExternalNotesDir = path.join(this.tempDir, 'ExternalNotes')
+              // 统计外部目录大小用于进度估算（保持进度不超过 60）
+              const extTotalSize = await this.getDirSize(externalNotesPath).catch(() => 0)
+              let extCopied = 0
+              await this.copyDirWithProgress(externalNotesPath, tempExternalNotesDir, (size) => {
+                if (extTotalSize > 0) {
+                  extCopied += size
+                  const progress = Math.min(60, 50 + Math.floor((extCopied / Math.max(1, extTotalSize)) * 10))
+                  if (progress > lastProgress) {
+                    lastProgress = progress
+                    onProgress({ stage: 'copying_external_notes', progress, total: 100 })
+                  }
                 }
-              }
-            })
+              })
+            }
+          } catch (err) {
+            logger.warn('[BackupManager] Skip external notes backup:', err as Error)
           }
-        } catch (err) {
-          logger.warn('[BackupManager] Skip external notes backup:', err as Error)
         }
       } else {
         logger.debug('Skip the backup of the file')
@@ -557,72 +560,50 @@ class BackupManager {
         logger.debug('skipBackupFile is true, skip restoring Data directory')
       }
 
-      // 恢复外部笔记目录（如果存在）
-      try {
-        const externalNotesTemp = path.join(this.tempDir, 'ExternalNotes')
-        const exists = await fs.pathExists(externalNotesTemp)
-        if (exists) {
-          // 从 data.json 中提取目标 notesPath
-          const dataObj = JSON.parse(data)
-          const persistString = dataObj?.localStorage?.['persist:cherry-studio']
-          let notesPath: string | null = null
-          if (persistString) {
-            try {
-              const persist: any = typeof persistString === 'string' ? JSON.parse(persistString) : persistString
-              let noteSlice: any = persist?.note
-              if (typeof noteSlice === 'string') {
-                try {
-                  noteSlice = JSON.parse(noteSlice)
-                } catch (e) {
-                  logger.warn('[BackupManager] Failed to parse note slice while restoring external notes', e as Error)
-                }
-              }
-              notesPath = typeof noteSlice?.notesPath === 'string' ? noteSlice.notesPath : null
-            } catch (e) {
-              logger.warn('[BackupManager] Failed to parse persist state while restoring external notes', e as Error)
+      // 恢复外部笔记目录（如果存在且用户选择恢复笔记）
+      if (restoreNotesOption) {
+        try {
+          const externalNotesTemp = path.join(this.tempDir, 'ExternalNotes')
+          const exists = await fs.pathExists(externalNotesTemp)
+          if (exists) {
+            // 恢复到当前设置的笔记目录，而不是备份时的路径
+            // 从当前的localStorage中获取当前的笔记路径
+            const currentNotesPath = this.getCurrentNotesPath(data)
+            if (currentNotesPath) {
+              const targetNotesPath = currentNotesPath
+              logger.debug(`Restoring external notes to current notes directory: ${targetNotesPath}`)
+
+              // 计算大小并合并复制
+              const totalSize = await this.getDirSize(externalNotesTemp)
+              let copiedSize = 0
+
+              // 确保目标目录存在
+              await fs.ensureDir(targetNotesPath)
+
+              // 使用Append模式：直接合并文件，存在则覆盖，不存在则创建
+              logger.info(
+                `Restoring notes using append mode - existing files will be overwritten, new files will be added`
+              )
+
+              await this.copyDirWithProgress(externalNotesTemp, targetNotesPath, (size) => {
+                copiedSize += size
+                const progress = Math.min(95, 85 + Math.floor((copiedSize / Math.max(1, totalSize)) * 10))
+                onProgress({ stage: 'restoring_external_notes', progress, total: 100 })
+              })
+
+              logger.info(`Successfully restored external notes to: ${targetNotesPath}`)
+            } else {
+              logger.warn('[BackupManager] No external notes path found in backup data')
             }
-          }
-
-          // 若未能解析出路径，则跳过外部笔记恢复
-          if (notesPath) {
-            const targetNotesPath = notesPath
-            logger.debug(`Restoring external notes to: ${targetNotesPath}`)
-
-            // 计算大小并合并复制
-            const totalSize = await this.getDirSize(externalNotesTemp)
-            let copiedSize = 0
-
-            // 确保目标目录存在，但不要删除现有内容
-            await fs.ensureDir(targetNotesPath)
-
-            // 检查目标目录是否已存在内容，如果存在则创建备份
-            const targetExists = await fs.pathExists(targetNotesPath)
-            const targetFiles = targetExists ? await fs.readdir(targetNotesPath) : []
-
-            if (targetFiles.length > 0) {
-              const backupDir = `${targetNotesPath}_backup_${Date.now()}`
-              logger.info(`Target notes directory not empty, creating backup at: ${backupDir}`)
-              await fs.copy(targetNotesPath, backupDir)
-              await this.setWritableRecursive(targetNotesPath)
-              await fs.emptyDir(targetNotesPath)
-            }
-
-            await this.copyDirWithProgress(externalNotesTemp, targetNotesPath, (size) => {
-              copiedSize += size
-              const progress = Math.min(95, 85 + Math.floor((copiedSize / Math.max(1, totalSize)) * 10))
-              onProgress({ stage: 'restoring_external_notes', progress, total: 100 })
-            })
-
-            logger.info(`Successfully restored external notes to: ${targetNotesPath}`)
           } else {
-            logger.warn('[BackupManager] No external notes path found in backup data')
+            logger.debug('[BackupManager] No external notes directory found in backup')
           }
-        } else {
-          logger.debug('[BackupManager] No external notes directory found in backup')
+        } catch (err) {
+          logger.error('[BackupManager] Failed to restore external notes:', err as Error)
+          // 不要阻止整个恢复过程
         }
-      } catch (err) {
-        logger.error('[BackupManager] Failed to restore external notes:', err as Error)
-        // 不要阻止整个恢复过程
+      } else {
+        logger.debug('[BackupManager] Skipping notes restoration as restoreNotesOption is false')
       }
 
       logger.debug('step 4: clean up temp directory')
@@ -643,6 +624,7 @@ class BackupManager {
 
   async backupToWebdav(_: Electron.IpcMainInvokeEvent, data: string, webdavConfig: WebDavConfig) {
     const filename = webdavConfig.fileName || 'cherry-studio.backup.zip'
+    // Extract backupNotes from the backup data (from settings)
     const backupedFilePath = await this.backup(_, filename, data, undefined, webdavConfig.skipBackupFile)
     const webdavClient = this.getWebDavInstance(webdavConfig)
     try {

@@ -1,4 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import { Sortable, useDndReorder } from '@renderer/components/dnd'
 import HorizontalScrollContainer from '@renderer/components/HorizontalScrollContainer'
 import { isMac } from '@renderer/config/constant'
@@ -46,6 +47,8 @@ interface TabsContainerProps {
   children: React.ReactNode
 }
 
+const logger = loggerService.withContext('TabContainer')
+
 const getTabIcon = (
   tabId: string,
   minapps: MinAppType[],
@@ -56,14 +59,28 @@ const getTabIcon = (
     const appId = tabId.replace('apps:', '')
     let app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
 
-    // If not found in default/custom apps, try cache (for temporary apps)
+    // If not found in permanent apps, search in temporary apps cache
+    // The cache stores apps opened via openSmartMinapp() for top navbar mode
+    // These are temporary MinApps that were opened but not yet saved to user's config
+    // The cache is LRU (Least Recently Used) with max size from settings
+    // Cache validity: Apps in cache are currently active/recently used, not outdated
     if (!app && minAppsCache) {
       app = minAppsCache.get(appId)
+
+      // Defensive programming: If app not found in cache but tab exists,
+      // the cache entry may have been evicted due to LRU policy
+      // Log warning for debugging potential sync issues
+      if (!app) {
+        logger.warn(`MinApp ${appId} not found in cache, using fallback icon`)
+      }
     }
 
     if (app) {
       return <MinAppIcon size={14} app={app} />
     }
+
+    // Fallback: If no app found (cache evicted), show default icon
+    return <LayoutGrid size={14} />
   }
 
   switch (tabId) {
@@ -125,12 +142,21 @@ const TabsContainer: React.FC<TabsContainerProps> = ({ children }) => {
       const appId = tabId.replace('apps:', '')
       let app = [...DEFAULT_MIN_APPS, ...minapps].find((app) => app.id === appId)
 
-      // If not found in default/custom apps, try cache (for temporary apps)
+      // If not found in permanent apps, search in temporary apps cache
+      // This ensures temporary MinApps display proper titles while being used
+      // The LRU cache automatically manages app lifecycle and prevents memory leaks
       if (!app && minAppsCache) {
         app = minAppsCache.get(appId)
+
+        // Defensive programming: If app not found in cache but tab exists,
+        // the cache entry may have been evicted due to LRU policy
+        if (!app) {
+          logger.warn(`MinApp ${appId} not found in cache, using fallback title`)
+        }
       }
 
-      return app ? app.name : 'MinApp'
+      // Return app name if found, otherwise use fallback with appId
+      return app ? app.name : `MinApp-${appId}`
     }
     return getTitleLabel(tabId)
   }

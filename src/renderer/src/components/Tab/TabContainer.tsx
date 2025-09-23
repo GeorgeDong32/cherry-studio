@@ -12,9 +12,10 @@ import tabsService from '@renderer/services/TabsService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import type { Tab } from '@renderer/store/tabs'
 import { addTab, removeTab, setActiveTab, setTabs } from '@renderer/store/tabs'
-import { ThemeMode } from '@renderer/types'
+import { MinAppType, ThemeMode } from '@renderer/types'
 import { classNames } from '@renderer/utils'
 import { Tooltip } from 'antd'
+import { LRUCache } from 'lru-cache'
 import {
   FileSearch,
   Folder,
@@ -45,7 +46,11 @@ interface TabsContainerProps {
   children: React.ReactNode
 }
 
-const getTabIcon = (tabId: string, minapps: any[], minAppsCache?: any): React.ReactNode | undefined => {
+const getTabIcon = (
+  tabId: string,
+  minapps: MinAppType[],
+  minAppsCache?: LRUCache<string, MinAppType>
+): React.ReactNode | undefined => {
   // Check if it's a minapp tab (format: apps:appId)
   if (tabId.startsWith('apps:')) {
     const appId = tabId.replace('apps:', '')

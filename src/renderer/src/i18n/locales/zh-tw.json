@@ -2593,6 +2593,8 @@
         "label": "應用程式日誌"
       },
       "backup": {
+        "backup_notes_help": "啟用後將筆記資料加入備份中",
+        "backup_notes_title": "啟用筆記備份",
         "skip_file_data_help": "備份時跳過備份圖片、知識庫等數據文件，僅備份聊天記錄和設置。減少空間佔用，加快備份速度",
         "skip_file_data_title": "精簡備份"
       },

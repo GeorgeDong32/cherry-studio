@@ -2593,6 +2593,8 @@
         "label": "App Logs"
       },
       "backup": {
+        "backup_notes_help": "Include note data in backup when enabled",
+        "backup_notes_title": "Enable note backup",
         "skip_file_data_help": "Skip backing up data files such as pictures and knowledge bases during backup, and only back up chat records and settings. Reduce space occupancy and speed up the backup speed.",
         "skip_file_data_title": "Slim Backup"
       },

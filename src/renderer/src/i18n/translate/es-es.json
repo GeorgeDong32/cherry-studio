@@ -333,6 +333,7 @@
       "new_topic": "Nuevo tema {{Command}}",
       "pause": "Pausar",
       "placeholder": "Escribe aquí tu mensaje...",
+      "placeholder_without_triggers": "Escriba un mensaje aquí y presione {{key}} para enviar",
       "send": "Enviar",
       "settings": "Configuración",
       "thinking": {
@@ -2592,6 +2593,8 @@
         "label": "Registros de la aplicación"
       },
       "backup": {
+        "backup_notes_help": "Al habilitarlo, se agregarán los datos de las notas a la copia de seguridad",
+        "backup_notes_title": "Habilitar la copia de seguridad de notas",
         "skip_file_data_help": "Omitir la copia de seguridad de archivos de datos como imágenes y bases de conocimiento durante la copia de seguridad, respaldando únicamente historial de chat y configuraciones. Reduce el uso de espacio y acelera el proceso de copia de seguridad",
         "skip_file_data_title": "Copia de seguridad reducida"
       },

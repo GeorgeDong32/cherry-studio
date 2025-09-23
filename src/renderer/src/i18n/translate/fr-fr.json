@@ -333,6 +333,7 @@
       "new_topic": "Nouveau sujet {{Command}}",
       "pause": "Pause",
       "placeholder": "Entrez votre message ici...",
+      "placeholder_without_triggers": "Saisissez votre message ici, appuyez sur {{key}} pour envoyer",
       "send": "Envoyer",
       "settings": "Paramètres",
       "thinking": {
@@ -2592,6 +2593,8 @@
         "label": "Journaux de l'application"
       },
       "backup": {
+        "backup_notes_help": "Ajouter les données de notes à la sauvegarde après activation",
+        "backup_notes_title": "Activer la sauvegarde des notes",
         "skip_file_data_help": "Passer outre les fichiers de données tels que les images et les bases de connaissances lors de la sauvegarde, et ne sauvegarder que les conversations et les paramètres. Cela réduit l'occupation d'espace et accélère la vitesse de sauvegarde.",
         "skip_file_data_title": "Sauvegarde réduite"
       },

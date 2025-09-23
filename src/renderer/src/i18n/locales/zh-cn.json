@@ -2593,6 +2593,8 @@
         "label": "应用日志"
       },
       "backup": {
+        "backup_notes_help": "启用后添加笔记数据到备份中",
+        "backup_notes_title": "启用笔记备份",
         "skip_file_data_help": "备份时跳过备份图片、知识库等数据文件，仅备份聊天记录和设置。减少空间占用，加快备份速度",
         "skip_file_data_title": "精简备份"
       },

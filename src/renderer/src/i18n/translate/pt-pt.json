@@ -333,6 +333,7 @@
       "new_topic": "Novo tópico {{Command}}",
       "pause": "Pausar",
       "placeholder": "Digite sua mensagem aqui...",
+      "placeholder_without_triggers": "Digite a mensagem aqui, pressione {{key}} para enviar",
       "send": "Enviar",
       "settings": "Configurações",
       "thinking": {
@@ -2592,6 +2593,8 @@
         "label": "Logs do aplicativo"
       },
       "backup": {
+        "backup_notes_help": "Ao ser ativado, adiciona os dados de anotações ao backup",
+        "backup_notes_title": "Ativar backup de anotações",
         "skip_file_data_help": "Pule arquivos de dados como imagens e bancos de conhecimento durante o backup e realize apenas o backup das conversas e configurações. Diminua o consumo de espaço e aumente a velocidade do backup.",
         "skip_file_data_title": "Backup simplificado"
       },
